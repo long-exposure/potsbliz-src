@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+
+import netifaces
+import sys
+
+
+def send(data):
+    sys.stdout.write('%s \n'%data)
+    sys.stdout.flush()
+
+
+env = ""
+while(env != "\n"):
+	env = sys.stdin.readline()
+
+# determine IP address
+ipaddr = None
+if (netifaces.AF_INET in netifaces.ifaddresses('eth0').keys()):
+    ipaddr = netifaces.ifaddresses('eth0')[netifaces.AF_INET][0]['addr']
+elif (netifaces.AF_INET in netifaces.ifaddresses('wlan0').keys()):
+    ipaddr = netifaces.ifaddresses('wlan0')[netifaces.AF_INET][0]['addr']
+
+if (ipaddr != None):
+	send('SAY ALPHA %s "#"' % ipaddr)
+else:
+	send('EXEC Playback tt-somethingwrong');
+
+sys.stdin.readline()

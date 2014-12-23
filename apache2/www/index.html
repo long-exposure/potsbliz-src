@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>POTSBLIZ - Web Interface</title>
+  <script src="/jquery/jquery.js"></script>
+  <script src="/jquery-ui/jquery-ui.min.js"></script>
+  <script src="/jtable/jquery.jtable.min.js" type="text/javascript"></script>
+  <link href="/jquery-ui-themes/sunny/jquery-ui.min.css" rel="stylesheet" type="text/css" />
+  <link href="/jtable/themes/jqueryui/jtable_jqueryui.min.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+
+<div id="Tabs">
+  <ul>
+    <li><a href="#tabs-1">Speed dial</a></li>
+    <li><a href="#tabs-2">SIP account</a></li>
+    <li><a href="#tabs-3">Change password</a></li>
+    <li><a href="#tabs-4">About POTSBLIZ</a></li>
+  </ul>
+  <div id="tabs-1">
+    <div id="SpeedDialContainer"></div>
+  </div>
+  <div id="tabs-2">
+    <div id="SipAccountContainer"></div>
+  </div>
+  <div id="tabs-3">
+	<form name="password_form" action="">
+	  <fieldset>
+	  	<table>
+	  		<tr>
+		    	<td><label for="oldpw" id="oldpw_label">Old password</label></td>
+	    		<td><input type="text" name="oldpw" id="oldpw" size="30" value="" class="text-input" /></td>
+	    		<td><label class="ui-state-error" for="oldpw" id="oldpw_error">Invalid input!</label></td>
+	  		</tr>
+	  		<tr>
+	    		<td><label for="newpw" id="newpw_label">New password</label></td>
+	    		<td><input type="password" name="newpw" id="newpw" size="30" value="" class="text-input" /></td>
+	    		<td><label class="ui-state-error" for="newpw" id="newpw_error">Invalid input!</label></td>
+	  		</tr>
+	  		<tr>
+	    		<td><label for="newpw2" id="newpw2_label">Repeat new password</label></td>
+	    		<td><input type="password" name="newpw2" id="newpw2" size="30" value="" class="text-input" /></td>
+	    		<td><label class="ui-state-error" for="newpw2" id="newpw2_error">Password mismatch!</label></td>
+	  		</tr>
+	  		<tr><td>&nbsp;</td></tr>
+	  		<tr>
+	    		<td><input type="submit" name="submit" class="button" id="changePasswordButton" value="Change password" /></td>
+	    		<td><label for="changePasswordButton" id="submit_result"></label></td>
+	  		</tr>
+	  	</table>
+	  </fieldset>
+	</form>
+  </div>
+  <div id="tabs-4">
+    <p>POTSBLIZ - (C) 2014 - Norbert Huffschmid</p>
+    <pre id="potsbliz_info" style="white-space: pre-wrap; white-space: -moz-pre-wrap; white-space: -pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word;  " />
+  </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+    	$('#Tabs').tabs();
+
+        $('#SipAccountContainer').jtable({
+            jqueryuiTheme: true,
+            actions: {
+                listAction:   '/config.php?action=list',
+                updateAction: '/config.php?action=update'
+            },
+            fields: {
+                config_key: {
+                	title: 'SIP Settings',
+                    key: true,
+                    edit: false,
+                    width: '20%'
+                },
+                config_value: {
+                    width: '80%'
+                },
+            }
+        });
+
+        $('#SpeedDialContainer').jtable({
+            title: '&nbsp;',
+            jqueryuiTheme: true,
+            actions: {
+                listAction:   '/speeddial.php?action=list',
+                createAction: '/speeddial.php?action=create',
+                updateAction: '/speeddial.php?action=update',
+                deleteAction: '/speeddial.php?action=delete'
+            },
+            fields: {
+                id: {
+                    key: true,
+                    list: false
+                },
+                shortcut: {
+                    title: 'Speed dial',
+                    width: '25%'
+                },
+                phonenumber: {
+                    title: 'Phone number',
+                    width: '25%'
+                },
+                comment: {
+                    title: 'Comment',
+                    width: '50%'
+                },
+            }
+        });
+        
+        $('#SipAccountContainer').jtable('load');
+        $('#SpeedDialContainer').jtable('load');
+        
+        $('.ui-state-error').hide();
+        $('#submit_result').hide();
+    	$("#changePasswordButton").click(function() {
+      		// validate and process change password form
+      		$('#submit_result').hide()
+      		$('.ui-state-error').hide();
+      		var success = true;
+  	  		var oldpw = $("input#oldpw").val();
+  			if (oldpw == "") {
+        		$("label#oldpw_error").show();
+        		$("input#oldpw").focus();
+        		success = false;
+      		}
+  	  		var newpw = $("input#newpw").val();
+  			if ((newpw == "") || (newpw == oldpw)) {
+        		$("label#newpw_error").show();
+        		$("input#newpw").focus();
+        		success = false;
+      		}
+  	  		var newpw2 = $("input#newpw2").val();
+  			if (newpw2 != newpw) {
+        		$("label#newpw2_error").show();
+        		$("input#newpw2").focus();
+        		success = false;
+      		}
+      		
+      		if (success == true) {
+      			var dataString = 'oldpw=' + oldpw + '&newpw=' + newpw;
+			    //alert (dataString);return false;
+			    $.ajax({
+				    type: "POST",
+				    url: "/change_password.php",
+				    data: dataString,
+				    dataType: "json",
+				    success: function(response) {
+				      $('#submit_result').text(response.Message);
+				      if (response.Result == 'OK') {
+					      $('#submit_result').removeClass('ui-state-error');
+				      }
+				      else {
+					      $('#submit_result').addClass('ui-state-error');
+					  }
+				      $('#submit_result').fadeIn(1000);
+				    }
+			    });
+      		}
+      		return false;
+      	});
+      	
+      	$.ajax({
+  			url: "/info.php",
+  			dataType: 'text',
+  			success: function(info) {
+    			$("#potsbliz_info").text(info);
+  			}
+		});
+
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,26 @@
+#!/usr/bin/env python
+
+import locale
+import sys
+
+def send(data):
+    sys.stdout.write('%s \n'%data)
+    sys.stdout.flush()
+
+
+env = ""
+while(env != "\n"):
+	env = sys.stdin.readline()
+
+#print(str(locale.getdefaultlocale()))
+#print(locale.getdefaultlocale()[0])
+
+#send("SET VARIABLE LOCALE_LANGUAGE %s" % locale.getdefaultlocale()[0])
+
+with open('/etc/default/locale') as locale_file:
+    for line in locale_file:
+        if (line.startswith('LANG=')):
+			send("SET VARIABLE LOCALE_LANGUAGE %s" % line[5:]
+)
+        	
+sys.stdin.readline()

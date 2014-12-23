@@ -1,0 +1,65 @@
+#!/bin/sh
+
+# ### BEGIN INIT INFO
+# Provides: potsbliz daemon
+# Required-Start: $remote_fs $syslog asterisk
+# Required-Stop: $remote_fs $syslog asterisk
+# Should-Start:
+# Should-Stop:
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: POTSBLIZ - Plain Old Telephone Service Beyond Local IP Stack
+# Description:       Supports old telephone devices in an IP environment
+### END INIT INFO
+
+DAEMON=/usr/bin/python
+ARGS="-m potsbliz"
+PIDFILE=/var/run/potsbliz.pid
+
+test -x $DAEMON || exit 0
+
+case "$1" in
+
+    start)
+    
+    if [ ! -d /var/log/apache2 ]; then
+        mkdir /var/log/apache2
+    fi
+    /etc/init.d/apache2 start
+    
+    echo "Starting potsbliz"
+    start-stop-daemon --start --pidfile $PIDFILE --make-pidfile --background --exec $DAEMON -- $ARGS
+    ;;
+
+    stop)
+    echo "Shutting down potsbliz"
+    start-stop-daemon --stop --pidfile $PIDFILE --retry 10
+    rm $PIDFILE
+    /etc/init.d/apache2 stop
+    ;;
+
+    restart)
+    echo "Restarting potsbliz"
+    start-stop-daemon --stop --pidfile $PIDFILE --retry 10
+    rm $PIDFILE
+    start-stop-daemon --start --pidfile $PIDFILE --make-pidfile --background --exec $DAEMON -- $ARGS
+    ;;
+
+    status)
+    dpkg -s potsbliz-rpi | grep Version
+    if [ -f $PIDFILE ]; then
+		echo '***********************'
+		echo '* POTSBLIZ is running *'
+		echo '***********************'
+	else
+		echo '***************************'
+		echo '* POTSBLIZ is NOT running *'
+		echo '***************************'
+	fi
+    ;;
+
+    *)
+    echo "Usage: $0 {start|stop|restart|status}"
+    exit 1
+esac
+exit 0
