@@ -21,7 +21,7 @@ elif (netifaces.AF_INET in netifaces.ifaddresses('wlan0').keys()):
     ipaddr = netifaces.ifaddresses('wlan0')[netifaces.AF_INET][0]['addr']
 
 if (ipaddr != None):
-	send('SAY ALPHA %s "#"' % ipaddr)
+	send('SAY ALPHA http://%s "#"' % ipaddr)
 else:
 	send('EXEC Playback tt-somethingwrong');
 
