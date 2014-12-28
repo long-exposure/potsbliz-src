@@ -118,7 +118,7 @@ class StateMachine(object):
     def event_digit_dialed(self, digit):
         with Logger(__name__ + '.event_digit_dialed') as log:
             
-            log.debug('Dialed digit: ' + digit)
+            log.info('Dialed digit: ' + digit)
             
             if (self._state == State.OFFHOOK):
                 self._anip.stop_dialtone()
