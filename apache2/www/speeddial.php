@@ -56,7 +56,10 @@ if($_GET["action"] == "create")
   $result = check_input($dbconn);
   if ($result === true)
   {
-    $sql = "INSERT INTO speeddial(shortcut, phonenumber, comment) VALUES('" . $_POST["shortcut"] . "', '" . $_POST["phonenumber"] . "', '" . $_POST["comment"] . "');";
+    $sql = "INSERT INTO speeddial(shortcut, phonenumber, comment) VALUES('" .
+            $_POST["shortcut"] . "', '" .
+            $_POST["phonenumber"] . "', '" .
+            $dbconn->real_escape_string($_POST["comment"]) . "');";
     $dbconn->query($sql);
 
     $sql = "SELECT * FROM speeddial WHERE id = LAST_INSERT_ID();";
@@ -78,7 +81,10 @@ if($_GET["action"] == "update")
   $result = check_input($dbconn);
   if ($result === true)
   {
-    $sql = "UPDATE speeddial SET shortcut = '" . $_POST["shortcut"] . "', phonenumber = '" . $_POST["phonenumber"] . "', comment = '" . $_POST["comment"] . "' WHERE id = " . $_POST["id"] . ";";
+    $sql = "UPDATE speeddial SET shortcut = '" . $_POST["shortcut"] .
+           "', phonenumber = '" . $_POST["phonenumber"] .
+           "', comment = '" . $dbconn->real_escape_string($_POST["comment"]) .
+           "' WHERE id = " . $_POST["id"] . ";";
     $dbconn->query($sql);
 
     //Return result to jTable
