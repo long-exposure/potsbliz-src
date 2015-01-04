@@ -1,5 +1,5 @@
 # IPUP - IP User Part
-# (C) 2014 - Norbert Huffschmid
+# (C) 2015 - Norbert Huffschmid
 
 import os
 import time
@@ -7,21 +7,15 @@ import potsbliz.config as config
 from subprocess import Popen, PIPE
 from threading import Event, Thread
 from potsbliz.logger import Logger
+from potsbliz.userpart import UserPart
 
-TOPIC_INCOMING_CALL = 'topic_incoming_call'
-TOPIC_TERMINATE = 'topic_terminate'
 
 SETTINGS_EXTENSION = '#'
 LOCAL_SIP_PBX = 'localhost:5065'
 
 
-class Ipup(object):
+class Ipup(UserPart):
     
-    def __init__(self, pub):
-        with Logger(__name__ + '.__init__'):
-            self._pub = pub
-
-
     def __enter__(self):
         with Logger(__name__ + '.__enter__'):
             
@@ -107,10 +101,10 @@ class Ipup(object):
                 log.info('Linphonec: ' + message)
 
                 if (message.find('Receiving new incoming call') >= 0):
-                    self._pub.sendMessage(TOPIC_INCOMING_CALL)
+                    self._pub.sendMessage(UserPart.TOPIC_INCOMING_CALL)
 
                 if (message.find('Call terminated.') >= 0):
-                    self._pub.sendMessage(TOPIC_TERMINATE)
+                    self._pub.sendMessage(UserPart.TOPIC_TERMINATE)
 
                 if (message.startswith('linphonec> Registration') and not message.endswith('successful.\n')):
                     log.error('Registration at remote sip server failed')

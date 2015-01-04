@@ -3,7 +3,8 @@
 import time
 import potsbliz.speeddial as speeddial
 from potsbliz.logger import Logger
-from potsbliz.ipup import Ipup, TOPIC_INCOMING_CALL, TOPIC_TERMINATE
+from potsbliz.userpart import UserPart
+from potsbliz.ipup import Ipup
 from potsbliz.anip import Anip, TOPIC_ONHOOK, TOPIC_OFFHOOK, TOPIC_DIGIT_DIALED
 from pubsub import pub
 from threading import Timer
@@ -28,8 +29,8 @@ class StateMachine(object):
             self._state_event_log = Logger(__name__)
             self._set_state(State.IDLE)
 
-            pub.subscribe(self.event_incoming_call, TOPIC_INCOMING_CALL)
-            pub.subscribe(self.event_terminate, TOPIC_TERMINATE)
+            pub.subscribe(self.event_incoming_call, UserPart.TOPIC_INCOMING_CALL)
+            pub.subscribe(self.event_terminate, UserPart.TOPIC_TERMINATE)
             pub.subscribe(self.event_offhook, TOPIC_OFFHOOK)
             pub.subscribe(self.event_onhook, TOPIC_ONHOOK)
             pub.subscribe(self.event_digit_dialed, TOPIC_DIGIT_DIALED)
