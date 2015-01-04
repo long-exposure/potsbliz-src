@@ -72,18 +72,16 @@ class StateMachine(object):
         self._state = state
 
 
-    def event_incoming_call(self):
+    def event_incoming_call(self, sender):
         with Logger(__name__ + '.event_incoming_call'):
             if (self._state == State.IDLE):
                 self._anip.ring_bell()
                 self._set_state(State.RINGING)
-            elif (self._state == State.OFFHOOK):
-                self._ipup.terminate_call()
-            elif (self._state == State.COLLECTING):
-                self._ipup.terminate_call()
+            else:
+                sender.terminate_call()
     
     
-    def event_terminate(self):
+    def event_terminate(self, sender):
         with Logger(__name__ + '.event_terminate'):
             if (self._state == State.RINGING):
                 self._anip.stop_bell()
