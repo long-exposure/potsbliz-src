@@ -7,10 +7,6 @@ from datetime import datetime
 from threading import Timer
 from potsbliz.logger import Logger
 
-TOPIC_ONHOOK = 'topic_onhook'
-TOPIC_OFFHOOK = 'topic_offhook'
-TOPIC_DIGIT_DIALED = 'topic_digit_dialed'
-
 GPIO_CHANNEL_HOOK = 8
 GPIO_CHANNEL_DIALER = 10
 GPIO_CHANNEL_GROUND_KEY = 12
@@ -22,6 +18,11 @@ HOOKFLASH_UP_TIMER = 0.5
 
 class Anip(object):
     
+    TOPIC_ONHOOK = 'topic_onhook'
+    TOPIC_OFFHOOK = 'topic_offhook'
+    TOPIC_DIGIT_DIALED = 'topic_digit_dialed'
+    
+
     def __init__(self, pub):
         with Logger(__name__ + '.__init__'):
             self._pub = pub
@@ -128,7 +129,7 @@ class Anip(object):
         with Logger(__name__ + '._offhook') as log:
 
             if (self._hookflash_counter == 0):
-                self._pub.sendMessage(TOPIC_OFFHOOK)
+                self._pub.sendMessage(self.TOPIC_OFFHOOK)
                 self._pulse_counter = 0
             else:
                 self._hookflash_down_timer.cancel()
@@ -144,7 +145,7 @@ class Anip(object):
             if (self._pulse_counter == 10):
                 self._pulse_counter = 0 # 10 -> 0
 
-            self._pub.sendMessage(TOPIC_DIGIT_DIALED, digit=str(self._pulse_counter))
+            self._pub.sendMessage(self.TOPIC_DIGIT_DIALED, digit=str(self._pulse_counter))
             
             self._pulse_counter = 0
 
@@ -155,7 +156,7 @@ class Anip(object):
             self._hookflash_up_timer.cancel()
             self._hookflash_counter = 0
             
-            self._pub.sendMessage(TOPIC_ONHOOK)
+            self._pub.sendMessage(self.TOPIC_ONHOOK)
         
 
     def _hookflash_up_timeout(self):
@@ -164,9 +165,9 @@ class Anip(object):
             log.debug(str(self._hookflash_counter) + ' hookflashs detected')
             
             if (self._hookflash_counter == 1):
-                self._pub.sendMessage(TOPIC_DIGIT_DIALED, digit='#')
+                self._pub.sendMessage(self.TOPIC_DIGIT_DIALED, digit='#')
             elif (self._hookflash_counter == 2):
-                self._pub.sendMessage(TOPIC_DIGIT_DIALED, digit='*')
+                self._pub.sendMessage(self.TOPIC_DIGIT_DIALED, digit='*')
             else:
                 log.debug('Hookflashs ignored')
                 
