@@ -1,5 +1,5 @@
 # ANIP - Analog subscriber at the IP network
-# (C) 2014 - Norbert Huffschmid
+# (C) 2015 - Norbert Huffschmid
 
 import RPi.GPIO as GPIO
 import potsbliz.tone_generator as tone_generator
@@ -10,6 +10,8 @@ from potsbliz.logger import Logger
 GPIO_CHANNEL_HOOK = 8
 GPIO_CHANNEL_DIALER = 10
 GPIO_CHANNEL_GROUND_KEY = 12
+GPIO_CHANNEL_LED_1 = 18
+GPIO_CHANNEL_LED_2 = 22
 
 ROTATION_TIMER = 0.3
 HOOKFLASH_DOWN_TIMER = 0.5
@@ -41,6 +43,8 @@ class Anip(object):
             GPIO.add_event_callback(GPIO_CHANNEL_HOOK, self._hook)
             GPIO.add_event_callback(GPIO_CHANNEL_DIALER, self._dialpulse)
             GPIO.add_event_callback(GPIO_CHANNEL_GROUND_KEY, self._ground_key)
+            GPIO.setup(GPIO_CHANNEL_LED_1, GPIO.OUT)
+            GPIO.setup(GPIO_CHANNEL_LED_2, GPIO.OUT)
             
             self._pulse_counter = 0
             self._hookflash_counter = 0
@@ -79,11 +83,16 @@ class Anip(object):
 
 
     def ring_bell(self):
-        pass # not supported yet
+        # no bell there, turn on leds if available 
+        GPIO.output(GPIO_CHANNEL_LED_1, True) 
+        GPIO.output(GPIO_CHANNEL_LED_2, True) 
+
 
 
     def stop_bell(self):
-        pass # not supported yet
+        # no bell there, turn off leds if available 
+        GPIO.output(GPIO_CHANNEL_LED_1, False) 
+        GPIO.output(GPIO_CHANNEL_LED_2, False) 
 
 
     def _hook(self, channel):

@@ -46,7 +46,9 @@ class StateMachine(object):
             self._anip = Anip(pub)
             self._anip.__enter__()
             
+            self._anip.ring_bell()
             self._anip.play_ok_tone()
+            self._anip.stop_bell()
 
 
     def __exit__(self, type, value, traceback):
