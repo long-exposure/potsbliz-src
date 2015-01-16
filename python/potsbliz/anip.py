@@ -3,8 +3,9 @@
 
 import RPi.GPIO as GPIO
 import potsbliz.tone_generator as tone_generator
+import time
 from datetime import datetime
-from threading import Timer
+from threading import Thread, Timer
 from potsbliz.logger import Logger
 
 GPIO_CHANNEL_HOOK = 8
@@ -23,6 +24,8 @@ class Anip(object):
     TOPIC_ONHOOK = 'topic_onhook'
     TOPIC_OFFHOOK = 'topic_offhook'
     TOPIC_DIGIT_DIALED = 'topic_digit_dialed'
+    
+    _is_ringing = False
     
 
     def __init__(self, pub):
@@ -84,15 +87,14 @@ class Anip(object):
 
     def ring_bell(self):
         # no bell there, turn on leds if available 
-        GPIO.output(GPIO_CHANNEL_LED_1, True) 
-        GPIO.output(GPIO_CHANNEL_LED_2, True) 
-
+        self._is_ringing = True
+        self._worker_thread = Thread(target=self._ring_worker)
+        self._worker_thread.start()
 
 
     def stop_bell(self):
         # no bell there, turn off leds if available 
-        GPIO.output(GPIO_CHANNEL_LED_1, False) 
-        GPIO.output(GPIO_CHANNEL_LED_2, False) 
+        self._is_ringing = False
 
 
     def _hook(self, channel):
@@ -181,3 +183,16 @@ class Anip(object):
                 log.debug('Hookflashs ignored')
                 
             self._hookflash_counter = 0
+
+
+    def _ring_worker(self):        
+        with Logger(__name__ + '._ring_worker') as log:
+            while (self._is_ringing):
+                # toggle leds
+                GPIO.output(GPIO_CHANNEL_LED_1, True) 
+                GPIO.output(GPIO_CHANNEL_LED_2, False) 
+                time.sleep(0.25)
+                GPIO.output(GPIO_CHANNEL_LED_1, False) 
+                GPIO.output(GPIO_CHANNEL_LED_2, True) 
+                time.sleep(0.25)
+            GPIO.output(GPIO_CHANNEL_LED_2, False) 
