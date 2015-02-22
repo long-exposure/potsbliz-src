@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 
-import dbus
-import dbus.mainloop.glib
+#import dbus
+#import dbus.mainloop.glib
+from dbus.mainloop.glib import DBusGMainLoop
+import gobject
+
 import signal
 import sys
 import time
-from gi.repository import GLib
+#from gi.repository import GLib
 from threading import Event
 from potsbliz.logger import Logger
 from potsbliz.state_machine import StateMachine
@@ -16,8 +19,9 @@ class Potsbliz(object):
     def run(self):
         with Logger(__name__ + '.run') as log:
             
-            dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-            #dbus.mainloop.glib.init_threads()
+            gobject.threads_init()
+            DBusGMainLoop(set_as_default=True)
+            #dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
             with StateMachine():
                 '''
@@ -33,8 +37,9 @@ class Potsbliz(object):
                 # register for SIGTERM
                 signal.signal(signal.SIGTERM, lambda signum, frame: self._mainloop.quit())
 
-                self._mainloop = GLib.MainLoop()
-                GLib.threads_init()
+                #self._mainloop = GLib.MainLoop()
+                self._mainloop = gobject.MainLoop()
+                #GLib.threads_init()
                 log.debug('Run mainloop ...')
                 self._mainloop.run() 
                 log.debug('Mainloop terminated.')
