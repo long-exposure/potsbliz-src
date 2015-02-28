@@ -1,29 +1,35 @@
 # IPUP - IP User Part
 # (C) 2015 - Norbert Huffschmid
 
-import os
 import time
-import potsbliz.config as config
 from subprocess import Popen, PIPE
-from threading import Event, Thread
+from threading import Thread
 from potsbliz.logger import Logger
 from potsbliz.userpart import UserPart
 
 
-SETTINGS_EXTENSION = '#'
-LOCAL_SIP_PBX = 'localhost:5065'
-
-
 class Ipup(UserPart):
     
+    def __init__(self, pub, identity, proxy, password, port=5060):
+        with Logger(__name__ + '.__init__'):
+            super(Ipup, self).__init__(pub) # call base class constructor
+            self._identity = identity
+            self._proxy = proxy
+            self._password = password
+            self._port = port
+            
+        
     def __enter__(self):
         with Logger(__name__ + '.__enter__'):
-            
-            if (os.path.exists('/.linphonerc')):
-                os.remove('/.linphonerc')
-            if (os.path.exists('/root/.linphonerc')):
-                os.remove('/root/.linphonerc')
-            self._linphonec = Popen('/usr/bin/linphonec', stdout=PIPE, stdin=PIPE)        
+
+            # write linphonec config file
+            config_file = '/var/tmp/.linphonerc-' + self._identity
+            with open(config_file, 'w') as file:
+                file.write("[sip]\n")
+                file.write("sip_port=%d\n" % self._port)
+
+            self._linphonec = Popen(['/usr/bin/linphonec', '-c' , config_file],
+                                    stdout=PIPE, stdin=PIPE)        
 
             self._worker_thread = Thread(target=self._linphone_worker)
             self._worker_thread.start()
@@ -37,15 +43,8 @@ class Ipup(UserPart):
     
     def make_call(self, called_number):
         with Logger(__name__ + '.make_call'):
-            
-            if (called_number == SETTINGS_EXTENSION):
-                # call settings script on asterisk
-                destination = "sip:500@%s" % (LOCAL_SIP_PBX)                
-            else:
-                # make call towards remote sip server
-                sip_provider = config.get_value('sip_identity').split('@')[1]
-                destination = 'sip:' + called_number + '@' + sip_provider
-
+            sip_provider = self._identity.split('@')[1]
+            destination = 'sip:' + called_number + '@' + sip_provider
             self._linphonec.stdin.write('call ' + destination + '\n')
         
         
@@ -67,34 +66,10 @@ class Ipup(UserPart):
     def _linphone_worker(self):        
         with Logger(__name__ + '._linphone_worker') as log:
 
-            # register with local asterisk PBX
-            register_command = "register sip:potsbliz@%s sip:%s potsbliz\n" % (LOCAL_SIP_PBX, LOCAL_SIP_PBX)
+            register_command = "register %s %s %s\n" % (self._identity, self._proxy, self._password)
             self._linphonec.stdin.write(register_command)
             self._linphonec.stdin.flush()
-            time.sleep(1)
             
-            # register at remote sip server
-            # for some strange reasons linphonec does allow a second registration as above
-            # (trying to do so forces an unregistration)
-            # therefore we add a new proxy and register at it
-            # (doing this twice doesn't work either, because linphone does not ask for the password the second time)
-            # oh what a crap!
-            sip_identity = config.get_value('sip_identity')
-            sip_proxy = config.get_value('sip_proxy')
-            sip_password = config.get_value('sip_password')
-            
-            self._linphonec.stdin.write("proxy add\n")
-            self._linphonec.stdin.write("%s\n" % sip_proxy)
-            self._linphonec.stdin.write("%s\n" % sip_identity)
-            self._linphonec.stdin.write("yes\n") # yes, we want to register
-            self._linphonec.stdin.write("\n")    # default expiration time
-            self._linphonec.stdin.write("\n")    # no route to be specified
-            self._linphonec.stdin.write("yes\n") # yes, we accept this configuration 
-            self._linphonec.stdin.flush()
-            time.sleep(2)                        # wait for password request
-            self._linphonec.stdin.write("%s\n" % sip_password)
-            self._linphonec.stdin.flush()
-
             while self._linphonec.poll() is None:
                 
                 message = self._linphonec.stdout.readline()
