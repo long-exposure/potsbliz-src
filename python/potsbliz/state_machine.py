@@ -1,16 +1,19 @@
 #!/usr/bin/env python
 
 import time
+import potsbliz.config as config
 import potsbliz.speeddial as speeddial
 from potsbliz.logger import Logger
 from potsbliz.userpart import UserPart
 from potsbliz.ipup import Ipup
+from potsbliz.btup import Btup
 from potsbliz.anip import Anip
 from pubsub import pub
 from threading import Timer
 
 
 EOD_TIMER = 5
+SETTINGS_EXTENSION = '#'
 
 
 class State:
@@ -35,13 +38,27 @@ class StateMachine(object):
             pub.subscribe(self.event_onhook, Anip.TOPIC_ONHOOK)
             pub.subscribe(self.event_digit_dialed, Anip.TOPIC_DIGIT_DIALED)
 
-            self._ipup = Ipup(pub)
-            self._ipup.__enter__()
+            self._asterisk = Ipup(pub,
+                                  'sip:potsbliz@localhost:5065',
+                                  'sip:localhost:5065',
+                                  'potsbliz',
+                                  5061)
+            self._asterisk.__enter__()
+
+            self._sip = Ipup(pub,
+                             config.get_value('sip_identity'),
+                             config.get_value('sip_proxy'),
+                             config.get_value('sip_password'))
+            self._sip.__enter__()
 
             # wait for linphone init
-            # playing dailtone during linphone startup breaks soundcard setting for strange reasons!
+            # playing dailtone or starting pulseaudio during linphone startup breaks
+            #   soundcard setting for strange reasons!
             # make test with simultanuous dialtone and ringing!!!
             time.sleep(3)
+
+            self._btup = Btup(pub)
+            self._btup.__enter__()
 
             self._anip = Anip(pub)
             self._anip.__enter__()
@@ -53,7 +70,9 @@ class StateMachine(object):
 
     def __exit__(self, type, value, traceback):
         with Logger(__name__ + '.__exit__'):
-            self._ipup.__exit__(type, value, traceback)
+            self._sip.__exit__(type, value, traceback)
+            self._asterisk.__exit__(type, value, traceback)
+            self._btup.__exit__(type, value, traceback)
             self._anip.__exit__(type, value, traceback)
 
 
@@ -78,6 +97,7 @@ class StateMachine(object):
         with Logger(__name__ + '.event_incoming_call'):
             if (self._state == State.IDLE):
                 self._anip.ring_bell()
+                self._up = sender
                 self._set_state(State.RINGING)
             else:
                 sender.terminate_call()
@@ -85,6 +105,7 @@ class StateMachine(object):
     
     def event_terminate(self, sender):
         with Logger(__name__ + '.event_terminate'):
+            self._up = None
             if (self._state == State.RINGING):
                 self._anip.stop_bell()
                 self._set_state(State.IDLE)
@@ -101,7 +122,8 @@ class StateMachine(object):
             elif (self._state == State.COLLECTING):
                 self._set_state(State.IDLE)
             elif (self._state == State.TALK):
-                self._ipup.terminate_call()
+                self._up.terminate_call()
+                self._up = None
                 self._set_state(State.IDLE)
     
     
@@ -112,7 +134,7 @@ class StateMachine(object):
                 self._set_state(State.OFFHOOK)
             elif (self._state == State.RINGING):
                 self._anip.stop_bell()
-                self._ipup.answer_call()
+                self._up.answer_call()
                 self._set_state(State.TALK)
 
 
@@ -139,7 +161,7 @@ class StateMachine(object):
                     self._eod_timer.start()
             elif (self._state == State.TALK):
                 log.info('Send DTMF digit: ' + digit)
-                self._ipup.send_dtmf(digit)
+                self._up.send_dtmf(digit)
 
 
     def _end_of_dialing(self):
@@ -148,6 +170,13 @@ class StateMachine(object):
                 called_number = speeddial.convert(self._collected_digits)
                 log.info('Make call to: ' + called_number)
                 
-                self._ipup.make_call(called_number)
-
+                if (called_number == SETTINGS_EXTENSION):
+                    self._up = self._asterisk
+                    self._up.make_call('500')
+                else:
+                    self._up = self._sip
+                    self._up.make_call(called_number)
+                    
+                # TODO: consider making call through btup
+                
                 self._set_state(State.TALK)
