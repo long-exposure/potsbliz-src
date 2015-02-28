@@ -28,7 +28,7 @@ class Btup(UserPart):
                                                           "type='signal',sender='org.ofono',member='CallRemoved'"],
                                                           stdout=subprocess.PIPE)
 
-            subprocess.Popen(['pulseaudio', '--start'])
+            self._pulseaudio_process = subprocess.Popen(['/usr/local/bin/pulseaudio'])
 
             Thread(target=self._call_added_worker).start()
             Thread(target=self._call_removed_worker).start()
@@ -36,9 +36,9 @@ class Btup(UserPart):
 
     def __exit__(self, type, value, traceback):
         with Logger(__name__ + '.__exit__'):
-            self._call_added_process.kill()
-            self._call_removed_process.kill()
-            subprocess.Popen(['pulseaudio', '--kill'])
+            self._call_added_process.terminate()
+            self._call_removed_process.terminate()
+            self._pulseaudio_process.terminate()
 
 
     def make_call(self, called_number):
