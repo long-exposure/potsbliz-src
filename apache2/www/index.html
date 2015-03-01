@@ -63,25 +63,6 @@
 
     	$('#Tabs').tabs();
 
-        $('#SipAccountContainer').jtable({
-            jqueryuiTheme: true,
-            actions: {
-                listAction:   '/config.php?action=list',
-                updateAction: '/config.php?action=update'
-            },
-            fields: {
-                config_key: {
-                	title: 'SIP Settings',
-                    key: true,
-                    edit: false,
-                    width: '20%'
-                },
-                config_value: {
-                    width: '80%'
-                },
-            }
-        });
-
         $('#SpeedDialContainer').jtable({
             title: '&nbsp;',
             jqueryuiTheme: true,
@@ -111,8 +92,27 @@
             }
         });
         
-        $('#SipAccountContainer').jtable('load');
+        $('#SipAccountContainer').jtable({
+            jqueryuiTheme: true,
+            actions: {
+                listAction:   '/config.php?action=list',
+                updateAction: '/config.php?action=update'
+            },
+            fields: {
+                config_key: {
+                	title: 'SIP Settings',
+                    key: true,
+                    edit: false,
+                    width: '20%'
+                },
+                config_value: {
+                    width: '80%'
+                },
+            }
+        });
+
         $('#SpeedDialContainer').jtable('load');
+        $('#SipAccountContainer').jtable('load');
         
         $('.ui-state-error').hide();
         $('#submit_result').hide();
