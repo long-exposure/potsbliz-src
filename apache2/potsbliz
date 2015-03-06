@@ -9,6 +9,8 @@
 	<Directory /var/www/potsbliz>
 		Options Indexes FollowSymLinks MultiViews
 		AllowOverride AuthConfig
+		AddHandler mod_python .py
+		PythonHandler mod_python.publisher
 		Order allow,deny
 		allow from all
 	</Directory>

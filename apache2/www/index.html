@@ -14,17 +14,21 @@
 <div id="Tabs">
   <ul>
     <li><a href="#tabs-1">Speed dial</a></li>
-    <li><a href="#tabs-2">SIP account</a></li>
-    <li><a href="#tabs-3">Change password</a></li>
-    <li><a href="#tabs-4">About POTSBLIZ</a></li>
+    <li><a href="#tabs-2">Bluetooth</a></li>
+    <li><a href="#tabs-3">SIP account</a></li>
+    <li><a href="#tabs-4">Change password</a></li>
+    <li><a href="#tabs-5">About POTSBLIZ</a></li>
   </ul>
   <div id="tabs-1">
     <div id="SpeedDialContainer"></div>
   </div>
   <div id="tabs-2">
-    <div id="SipAccountContainer"></div>
+    <div id="BluetoothContainer"></div>
   </div>
   <div id="tabs-3">
+    <div id="SipAccountContainer"></div>
+  </div>
+  <div id="tabs-4">
 	<form name="password_form" action="">
 	  <fieldset>
 	  	<table>
@@ -52,7 +56,7 @@
 	  </fieldset>
 	</form>
   </div>
-  <div id="tabs-4">
+  <div id="tabs-5">
     <p>POTSBLIZ - (C) 2014 - Norbert Huffschmid</p>
     <pre id="potsbliz_info" style="white-space: pre-wrap; white-space: -moz-pre-wrap; white-space: -pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word;  " />
   </div>
@@ -92,6 +96,35 @@
             }
         });
         
+        $('#BluetoothContainer').jtable({
+            title: '&nbsp;',
+            jqueryuiTheme: true,
+            actions: {
+                listAction:   '/bluetooth.py/list',
+                deleteAction: '/bluetooth.py/delete'
+            },
+            fields: {
+                modemname: {
+                    key: true,
+                    list: false
+                },
+                name: {
+                    title: 'Smartphone',
+		          	width: '99%',
+                },
+                online: {
+		          	display: function (data) {
+		          		if (data.record.online) {
+	                		return '<img src="/images/bluetooth-active.png" alt="online" width="12" height="16" />';
+		          		}
+		          		else {
+	                		return '<img src="/images/bluetooth-inactive.png" alt="offline" width="12" height="16" />';
+                        }
+                    }
+                },
+            }
+        });
+        
         $('#SipAccountContainer').jtable({
             jqueryuiTheme: true,
             actions: {
@@ -112,6 +145,7 @@
         });
 
         $('#SpeedDialContainer').jtable('load');
+        $('#BluetoothContainer').jtable('load');
         $('#SipAccountContainer').jtable('load');
         
         $('.ui-state-error').hide();
@@ -170,6 +204,13 @@
     			$("#potsbliz_info").text(info);
   			}
 		});
+
+		// reload bluetooth list periodically if bluetooth tab is selected
+		setInterval(function() {
+			if ($('#Tabs').tabs('option', 'selected') == 1) {
+				$('#BluetoothContainer').jtable('load');
+			}
+		}, 3000);
 
     });
 </script>
