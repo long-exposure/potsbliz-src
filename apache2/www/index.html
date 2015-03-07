@@ -112,13 +112,13 @@
                     title: 'Smartphone',
 		          	width: '99%',
                 },
-                online: {
+                connected: {
 		          	display: function (data) {
-		          		if (data.record.online) {
-	                		return '<img src="/images/bluetooth-active.png" alt="online" width="12" height="16" />';
+		          		if (data.record.connected) {
+	                		return '<img src="/images/bluetooth-active.png" alt="Connected" width="12" height="16" />';
 		          		}
 		          		else {
-	                		return '<img src="/images/bluetooth-inactive.png" alt="offline" width="12" height="16" />';
+	                		return '<img src="/images/bluetooth-inactive.png" alt="Not connected" width="12" height="16" />';
                         }
                     }
                 },
