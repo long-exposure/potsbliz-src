@@ -3,6 +3,7 @@
 import time
 import potsbliz.config as config
 import potsbliz.speeddial as speeddial
+import potsbliz.tone_generator as tone_generator
 from potsbliz.logger import Logger
 from potsbliz.userpart import UserPart
 from potsbliz.ipup import Ipup
@@ -64,7 +65,7 @@ class StateMachine(object):
             self._anip.__enter__()
             
             self._anip.ring_bell()
-            self._anip.play_ok_tone()
+            tone_generator.play_ok_tone()
             self._anip.stop_bell()
 
 
@@ -110,14 +111,14 @@ class StateMachine(object):
                 self._anip.stop_bell()
                 self._set_state(State.IDLE)
             elif (self._state == State.TALK):
-                self._anip.start_dialtone()
+                tone_generator.start_dialtone()
                 self._set_state(State.OFFHOOK)
     
     
     def event_onhook(self):
         with Logger(__name__ + '.event_onhook'):
             if (self._state == State.OFFHOOK):
-                self._anip.stop_dialtone()
+                tone_generator.stop_dialtone()
                 self._set_state(State.IDLE)
             elif (self._state == State.COLLECTING):
                 self._set_state(State.IDLE)
@@ -130,7 +131,7 @@ class StateMachine(object):
     def event_offhook(self):
         with Logger(__name__ + '.event_offhook'):
             if (self._state == State.IDLE):
-                self._anip.start_dialtone()
+                tone_generator.start_dialtone()
                 self._set_state(State.OFFHOOK)
             elif (self._state == State.RINGING):
                 self._anip.stop_bell()
@@ -144,7 +145,7 @@ class StateMachine(object):
             log.info('Dialed digit: ' + digit)
             
             if (self._state == State.OFFHOOK):
-                self._anip.stop_dialtone()
+                tone_generator.stop_dialtone()
                 self._collected_digits = digit
                 self._eod_timer = Timer(EOD_TIMER, self._end_of_dialing)
                 self._eod_timer.start()

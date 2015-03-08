@@ -2,7 +2,6 @@
 # (C) 2015 - Norbert Huffschmid
 
 import RPi.GPIO as GPIO
-import potsbliz.tone_generator as tone_generator
 import time
 from datetime import datetime
 from threading import Thread, Timer
@@ -63,26 +62,6 @@ class Anip(object):
     def __exit__(self, type, value, traceback):
         with Logger(__name__ + '.__exit__'):
             self.stop_dialtone()
-
-
-    def start_dialtone(self):
-        with Logger(__name__ + '.start_dialtone'):
-            tone_generator.start_dialtone()
-
-
-    def stop_dialtone(self):
-        with Logger(__name__ + '.stop_dialtone'):
-            tone_generator.stop_dialtone()
-
-
-    def play_ok_tone(self):
-        with Logger(__name__ + '.play_ok_tone'):
-            tone_generator.play_ok_tone()
-            
-
-    def play_error_tone(self):
-        with Logger(__name__ + '.play_error_tone'):
-            tone_generator.play_error_tone()
 
 
     def ring_bell(self):
