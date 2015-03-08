@@ -24,6 +24,13 @@
   </div>
   <div id="tabs-2">
     <div id="BluetoothContainer"></div>
+    <br />
+    <div>
+      <form id="discovery_form">
+        <input type="checkbox" id="DiscoveryCheckbox" name="discovery">
+        <label for="discovery" id="discovery_label">Search new devices</label>
+      </form>
+    </div>
   </div>
   <div id="tabs-3">
     <div id="SipAccountContainer"></div>
@@ -112,6 +119,13 @@
                     title: 'Device',
 		          	width: '99%',
                 },
+                paired: {
+		          	display: function (data) {
+		          		if (!data.record.paired) {
+		          			return '<input type="submit" onclick="pairDevice(\'' + data.record.device + '\');" value="Connect ..." />';
+		          		}
+                    }
+                },
                 connected: {
 		          	display: function (data) {
 		          		if (data.record.connected) {
@@ -147,6 +161,29 @@
         $('#SpeedDialContainer').jtable('load');
         $('#BluetoothContainer').jtable('load');
         $('#SipAccountContainer').jtable('load');
+        
+        $('#discovery_form :checkbox').change(function() {
+          //alert('discovery changing!')         
+          if ($('#DiscoveryCheckbox').is(':checked')) {
+        	$.ajax( {
+  			  url: "/bluetooth.py/start_discovery",
+  			  success: function(info) {
+    			alert('Make your Bluetooth device visible!');
+  			  },
+  			  error: function(info) {
+    			alert('Discovery start failed!');
+  			  },
+		    });
+          }
+          else {
+        	$.ajax( {
+  			  url: "/bluetooth.py/stop_discovery",
+  			  error: function(info) {
+    			alert('Discovery stop failed!');
+  			  },
+		    });
+          }    
+        });
         
         $('.ui-state-error').hide();
         $('#submit_result').hide();
@@ -196,7 +233,7 @@
       		}
       		return false;
       	});
-      	
+
       	$.ajax({
   			url: "/info.php",
   			dataType: 'text',
@@ -212,7 +249,43 @@
 			}
 		}, 3000);
 
+        // let label blink while discovery is active 
+        setInterval(function() {
+          var label = $('#discovery_label');
+          if ($('#DiscoveryCheckbox').is(':checked')) {
+            if (label.css('visibility') == 'hidden') {
+              label.css('visibility', 'visible');
+            }
+            else {
+              label.css('visibility', 'hidden');
+            }
+          }
+          else {
+            label.css('visibility', 'visible');          
+          }    
+        }, 500);
+
     });
+    
+    function pairDevice(device) {
+      	//alert('Trying to pair with ' + device);
+
+      	var dataString = 'device=' + device;
+	  	//alert (dataString);return false;
+		$.ajax({
+			type: "POST",
+			url: "/bluetooth.py/pair",
+			data: dataString,
+			dataType: "json",
+			success: function(response) {
+				alert('Pairing done.');
+			},
+			error: function (xhr, ajaxOptions, thrownError) {
+        				alert('Error: ' + xhr.status + ' - ' + thrownError);
+      		},
+		});
+    }
+    
 </script>
 
 </body>
