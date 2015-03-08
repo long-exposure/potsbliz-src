@@ -75,6 +75,7 @@ class StateMachine(object):
             self._asterisk.__exit__(type, value, traceback)
             self._btup.__exit__(type, value, traceback)
             self._anip.__exit__(type, value, traceback)
+            tone_generator.stop_dialtone()
 
 
     def _set_state(self, state):

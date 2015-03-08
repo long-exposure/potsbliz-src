@@ -60,8 +60,7 @@ class Anip(object):
                 
 
     def __exit__(self, type, value, traceback):
-        with Logger(__name__ + '.__exit__'):
-            self.stop_dialtone()
+        pass
 
 
     def ring_bell(self):
