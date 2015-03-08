@@ -129,10 +129,10 @@
                 connected: {
 		          	display: function (data) {
 		          		if (data.record.connected) {
-	                		return '<img src="/images/bluetooth-active.png" alt="Connected" width="12" height="16" />';
+	                		return '<a href="javascript:;" title="Disconnect" onclick="disconnectDevice(\'' + data.record.device + '\');"><img src="/images/bluetooth-active.png" alt="Connected" width="12" height="16" /></a>';
 		          		}
 		          		else {
-	                		return '<img src="/images/bluetooth-inactive.png" alt="Not connected" width="12" height="16" />';
+	                		return '<a href="javascript:;" title="Try to Connect" onclick="connectDevice(\'' + data.record.device + '\');"><img src="/images/bluetooth-inactive.png" alt="Disconnected" width="12" height="16" /></a>';
                         }
                     }
                 },
@@ -283,6 +283,30 @@
 			error: function (xhr, ajaxOptions, thrownError) {
         				alert('Error: ' + xhr.status + ' - ' + thrownError);
       		},
+		});
+    }
+    
+    function connectDevice(device) {
+		$.ajax({
+			type: "POST",
+			url: "/bluetooth.py/connect",
+			data: 'device=' + device,
+			dataType: "json",
+		    success: function(response) {
+		      if (response.Result != 'OK') {
+			      alert('Cannot establish bluetooth connection.');
+			      //alert(response.Message);
+		      }
+		    },
+		});
+    }
+    
+    function disconnectDevice(device) {
+		$.ajax({
+			type: "POST",
+			url: "/bluetooth.py/disconnect",
+			data: 'device=' + device,
+			dataType: "json",
 		});
     }
     

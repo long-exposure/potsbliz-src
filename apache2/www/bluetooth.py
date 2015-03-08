@@ -61,3 +61,33 @@ def pair(req):
     device.Connect()
     
     return json.dumps({ "Result": "OK" })
+    
+    
+def connect(req):
+    req.content_type = 'application/json; charset=UTF8'
+    
+    # read POST parameter
+    device_id = req.form.getfirst('device')
+
+    bus = dbus.SystemBus()
+    device = dbus.Interface(bus.get_object('org.bluez', device_id), 'org.bluez.Device1')
+    
+    try:
+        device.Connect()
+        return json.dumps({ 'Result': 'OK' })
+    
+    except dbus.DBusException, e:
+        return json.dumps({ 'Result': 'Error', 'Message': str(e) })
+    
+    
+def disconnect(req):
+    req.content_type = 'application/json; charset=UTF8'
+    
+    # read POST parameter
+    device_id = req.form.getfirst('device')
+
+    bus = dbus.SystemBus()
+    device = dbus.Interface(bus.get_object('org.bluez', device_id), 'org.bluez.Device1')
+    device.Disconnect()
+    
+    return json.dumps({ "Result": "OK" })
