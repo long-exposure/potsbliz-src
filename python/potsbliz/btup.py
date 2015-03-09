@@ -48,7 +48,7 @@ class Btup(UserPart):
                                          'org.ofono.Manager')
             modems = ofono_manager.GetModems()
             for path, properties in modems:
-                log.debug("modem path: %s" % (path))
+                log.debug('modem path: %s' % (path))
                 if ('org.ofono.VoiceCallManager' not in properties['Interfaces']):
                     continue                
                 if (properties['Online'] == False):
@@ -71,8 +71,8 @@ class Btup(UserPart):
             modems = ofono_manager.GetModems()
 
             for path, properties in modems:
-                log.debug("modem path: %s" % (path))
-                if "org.ofono.VoiceCallManager" not in properties["Interfaces"]:
+                log.debug('modem path: %s' % (path))
+                if ('org.ofono.VoiceCallManager' not in properties['Interfaces']):
                     continue
 
                 vcm = dbus.Interface(self._bus.get_object('org.ofono', path),
@@ -80,9 +80,9 @@ class Btup(UserPart):
                 calls = vcm.GetCalls()
 
                 for path, properties in calls:
-                    state = properties["State"]
-                    log.debug("path: %s, state: %s" % (path, state))
-                    if state != "incoming":
+                    state = properties['State']
+                    log.debug('path: %s, state: %s' % (path, state))
+                    if state != 'incoming':
                         continue
 
                     call = dbus.Interface(self._bus.get_object('org.ofono', path),
@@ -98,15 +98,28 @@ class Btup(UserPart):
                                            'org.ofono.Manager')
             log.debug('Dbus: Get modem path')
             modems = ofono_manager.GetModems()
-            modem_path = modems[0][0]
 
-            log.debug('Dbus: Get voicecall manager')
-            vcm = dbus.Interface(self._bus.get_object('org.ofono', modem_path),
+            # find modem with active call
+            # why is SendTones a method of VoiceCallManager and not VoiceCall???
+            for path, properties in modems:
+                log.debug('modem path: %s' % (path))
+                if ('org.ofono.VoiceCallManager' not in properties['Interfaces']):
+                    continue
+
+                vcm = dbus.Interface(self._bus.get_object('org.ofono', path),
                                      'org.ofono.VoiceCallManager')
-            log.debug('Dbus: Send tone ...')
-            vcm.SendTones(str(digit))
-            log.debug('Dbus: Tone sent.')
+                calls = vcm.GetCalls()
 
+                for path, properties in calls:
+                    state = properties['State']
+                    log.debug('path: %s, state: %s' % (path, state))
+                    if state != 'active':
+                        continue
+
+                    log.debug('Dbus: Send tone ...')
+                    vcm.SendTones(str(digit))
+                    log.debug('Dbus: Tone sent.')
+            
 
     def terminate_call(self):
         with Logger(__name__ + '.terminate_call'):
