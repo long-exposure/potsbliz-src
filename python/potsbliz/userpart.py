@@ -26,7 +26,7 @@ class UserPart(object):
     
     def make_call(self, called_number):
         raise NotImplementedError(INHERITANCE_ERROR)
-        
+        # must return True in case of success and False otherwise
         
     def answer_call(self):
         raise NotImplementedError(INHERITANCE_ERROR)

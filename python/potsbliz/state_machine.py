@@ -174,11 +174,19 @@ class StateMachine(object):
                 
                 if (called_number == SETTINGS_EXTENSION):
                     self._up = self._asterisk
-                    self._up.make_call('500')
+                    success = self._up.make_call('500')
                 else:
-                    self._up = self._sip
-                    self._up.make_call(called_number)
-                    
-                # TODO: consider making call through btup
-                
-                self._set_state(State.TALK)
+                    # first we try it via bluetooth
+                    self._up = self._btup
+                    success = self._up.make_call(called_number)
+                    if (success == False):
+                        # then we try sip
+                        self._up = self._sip
+                        success = self._up.make_call(called_number)
+
+                if (success == True):
+                    self._set_state(State.TALK)
+                else:
+                    tone_generator.start_dialtone()
+                    self._set_state(State.OFFHOOK)
+        

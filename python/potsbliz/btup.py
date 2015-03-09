@@ -47,21 +47,22 @@ class Btup(UserPart):
             ofono_manager = dbus.Interface(self._bus.get_object('org.ofono', '/'),
                                          'org.ofono.Manager')
             modems = ofono_manager.GetModems()
-            modem_path = modems[0][0]
-            log.debug("Connecting modem %s..." % modem_path)
-            modem = dbus.Interface(self._bus.get_object('org.ofono', modem_path),
-                                   'org.ofono.Modem')
+            for path, properties in modems:
+                log.debug("modem path: %s" % (path))
+                if ('org.ofono.VoiceCallManager' not in properties['Interfaces']):
+                    continue                
+                if (properties['Online'] == False):
+                    continue
+                
+                vcm = dbus.Interface(self._bus.get_object('org.ofono', path),
+                                     'org.ofono.VoiceCallManager')
+                dial_path = vcm.Dial(called_number, 'default')
+                log.debug(dial_path)
+                return True
             
-            if (modem.GetProperties()['Powered'] == False):
-                modem.SetProperty("Powered", dbus.Boolean(1), timeout = 120)
-                time.sleep(1) # without delay call fails
-            
-            vcm = dbus.Interface(self._bus.get_object('org.ofono', modem_path),
-                                 'org.ofono.VoiceCallManager')
-            dial_path = vcm.Dial(called_number, "default")
-            log.debug(dial_path)
+            return False # no active modem found
 
-        
+
     def answer_call(self):
         with Logger(__name__ + '.answer_call') as log:
             

@@ -46,6 +46,7 @@ class Ipup(UserPart):
             sip_provider = self._identity.split('@')[1]
             destination = 'sip:' + called_number + '@' + sip_provider
             self._linphonec.stdin.write('call ' + destination + '\n')
+            return True
         
         
     def answer_call(self):
