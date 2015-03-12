@@ -1,20 +1,20 @@
 #!/bin/sh
 
 # ### BEGIN INIT INFO
-# Provides: potsbliz
-# Required-Start: $remote_fs $syslog asterisk
-# Required-Stop: $remote_fs $syslog asterisk
+# Provides: pots-rotary
+# Required-Start: $remote_fs $syslog potsbliz
+# Required-Stop: $remote_fs $syslog potsbliz
 # Should-Start:
 # Should-Stop:
 # Default-Start: 2 3 4 5
 # Default-Stop: 0 1 6
-# Short-Description: POTSBLIZ daemon
-# Description:       Plain Old Telephone Service Beyond Local IP Stack
+# Short-Description: POTSBLIZ ROTATY - Rotary Dial Phone Plugin for POTSBLIZ
+# Description:       Supports old rotary dial phones in an IP environment
 ### END INIT INFO
 
 DAEMON=/usr/bin/python
-ARGS="-m potsbliz"
-PIDFILE=/var/run/potsbliz.pid
+ARGS="-m potsbliz.plugin.rotary"
+PIDFILE=/var/run/potsbliz-rotary.pid
 
 test -x $DAEMON || exit 0
 
@@ -22,24 +22,18 @@ case "$1" in
 
     start)
     
-    if [ ! -d /var/log/apache2 ]; then
-        mkdir /var/log/apache2
-    fi
-    /etc/init.d/apache2 start
-    
-    echo "Starting potsbliz"
+    echo "Starting potsbliz-rotary"
     start-stop-daemon --start --pidfile $PIDFILE --make-pidfile --background --exec $DAEMON -- $ARGS
     ;;
 
     stop)
-    echo "Shutting down potsbliz"
+    echo "Shutting down potsbliz-rotary"
     start-stop-daemon --stop --pidfile $PIDFILE --retry 10
     rm $PIDFILE
-    /etc/init.d/apache2 stop
     ;;
 
     restart)
-    echo "Restarting potsbliz"
+    echo "Restarting potsbliz-rotary"
     start-stop-daemon --stop --pidfile $PIDFILE --retry 10
     rm $PIDFILE
     start-stop-daemon --start --pidfile $PIDFILE --make-pidfile --background --exec $DAEMON -- $ARGS
@@ -48,13 +42,13 @@ case "$1" in
     status)
     dpkg -s potsbliz-rpi | grep Version
     if [ -f $PIDFILE ]; then
-		echo '***********************'
-		echo '* POTSBLIZ is running *'
-		echo '***********************'
+		echo '******************************'
+		echo '* POTSBLIZ-ROTARY is running *'
+		echo '******************************'
 	else
-		echo '***************************'
-		echo '* POTSBLIZ is NOT running *'
-		echo '***************************'
+		echo '**********************************'
+		echo '* POTSBLIZ-ROTARY is NOT running *'
+		echo '**********************************'
 	fi
     ;;
 

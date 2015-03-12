@@ -1,25 +1,28 @@
 #!/usr/bin/env python
 
+import dbus
+import dbus.service
+import gobject
 import signal
-import sys
-import time
-from threading import Event
+from dbus.mainloop.glib import DBusGMainLoop
 from potsbliz.logger import Logger
 from potsbliz.state_machine import StateMachine
-
 
 class Potsbliz(object):
 
     def run(self):
         with Logger(__name__ + '.run') as log:
             
+            DBusGMainLoop(set_as_default=True)
             with StateMachine():
-                
+
+                self._loop = gobject.MainLoop()
+                gobject.threads_init()
+
                 # register for SIGTERM
-                self._sigterm_event = Event()
-                signal.signal(signal.SIGTERM, lambda signum, frame: self._sigterm_event.set())
-                # only presence of timeout allows SIGTERM event to be received!
-                self._sigterm_event.wait(sys.maxint)
+                signal.signal(signal.SIGTERM, lambda signum, frame: self._loop.quit())
+
+                self._loop.run()
                 
                 log.info('SIGTERM event received. Shutting down ...')
 

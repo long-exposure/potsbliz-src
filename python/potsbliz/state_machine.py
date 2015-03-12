@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import dbus
+import dbus.service
 import time
 import potsbliz.config as config
 import potsbliz.speeddial as speeddial
@@ -8,7 +10,6 @@ from potsbliz.logger import Logger
 from potsbliz.userpart import UserPart
 from potsbliz.ipup import Ipup
 from potsbliz.btup import Btup
-from potsbliz.anip import Anip
 from pubsub import pub
 from threading import Timer
 
@@ -25,8 +26,13 @@ class State:
     COLLECTING = 5
 
 
-class StateMachine(object):
+class StateMachine(dbus.service.Object):
     
+    def __init__(self):
+        busName = dbus.service.BusName('net.longexposure.potsbliz', bus = dbus.SystemBus())
+        dbus.service.Object.__init__(self, busName, '/StateMachine')
+
+
     def __enter__(self):
         with Logger(__name__ + '.__enter__'):
         
@@ -35,9 +41,6 @@ class StateMachine(object):
 
             pub.subscribe(self.event_incoming_call, UserPart.TOPIC_INCOMING_CALL)
             pub.subscribe(self.event_terminate, UserPart.TOPIC_TERMINATE)
-            pub.subscribe(self.event_offhook, Anip.TOPIC_OFFHOOK)
-            pub.subscribe(self.event_onhook, Anip.TOPIC_ONHOOK)
-            pub.subscribe(self.event_digit_dialed, Anip.TOPIC_DIGIT_DIALED)
 
             self._asterisk = Ipup(pub,
                                   'sip:potsbliz@localhost:5065',
@@ -61,12 +64,7 @@ class StateMachine(object):
             self._btup = Btup(pub)
             self._btup.__enter__()
 
-            self._anip = Anip(pub)
-            self._anip.__enter__()
-            
-            self._anip.ring_bell()
             tone_generator.play_ok_tone()
-            self._anip.stop_bell()
 
 
     def __exit__(self, type, value, traceback):
@@ -74,8 +72,6 @@ class StateMachine(object):
             self._sip.__exit__(type, value, traceback)
             self._asterisk.__exit__(type, value, traceback)
             self._btup.__exit__(type, value, traceback)
-            self._anip.__exit__(type, value, traceback)
-            tone_generator.stop_dialtone()
 
 
     def _set_state(self, state):
@@ -92,13 +88,13 @@ class StateMachine(object):
         else:
             raise ValueError('Invalid state for state machine')
 
+        self.StateChanged(state)
         self._state = state
 
 
     def event_incoming_call(self, sender):
         with Logger(__name__ + '.event_incoming_call'):
             if (self._state == State.IDLE):
-                self._anip.ring_bell()
                 self._up = sender
                 self._set_state(State.RINGING)
             else:
@@ -109,14 +105,13 @@ class StateMachine(object):
         with Logger(__name__ + '.event_terminate'):
             self._up = None
             if (self._state == State.RINGING):
-                self._anip.stop_bell()
                 self._set_state(State.IDLE)
             elif (self._state == State.TALK):
                 tone_generator.start_dialtone()
                 self._set_state(State.OFFHOOK)
     
-    
-    def event_onhook(self):
+    @dbus.service.method(dbus_interface='net.longexposure.potsbliz.statemachine', in_signature='', out_signature='')
+    def Onhook(self):
         with Logger(__name__ + '.event_onhook'):
             if (self._state == State.OFFHOOK):
                 tone_generator.stop_dialtone()
@@ -129,18 +124,19 @@ class StateMachine(object):
                 self._set_state(State.IDLE)
     
     
-    def event_offhook(self):
+    @dbus.service.method(dbus_interface='net.longexposure.potsbliz.statemachine', in_signature='', out_signature='')
+    def Offhook(self):
         with Logger(__name__ + '.event_offhook'):
             if (self._state == State.IDLE):
                 tone_generator.start_dialtone()
                 self._set_state(State.OFFHOOK)
             elif (self._state == State.RINGING):
-                self._anip.stop_bell()
                 self._up.answer_call()
                 self._set_state(State.TALK)
 
 
-    def event_digit_dialed(self, digit):
+    @dbus.service.method(dbus_interface='net.longexposure.potsbliz.statemachine', in_signature='s', out_signature='')
+    def DigitDialed(self, digit):
         with Logger(__name__ + '.event_digit_dialed') as log:
             
             log.info('Dialed digit: ' + digit)
@@ -166,6 +162,12 @@ class StateMachine(object):
                 self._up.send_dtmf(digit)
 
 
+    @dbus.service.signal(dbus_interface='net.longexposure.potsbliz.statemachine', signature='i')
+    def StateChanged(self, state):
+        with Logger(__name__ + '.StateChanged'):
+            pass
+
+
     def _end_of_dialing(self):
         with Logger(__name__ + '._end_of_dialing') as log:
             if (self._state == State.COLLECTING):
@@ -189,4 +191,3 @@ class StateMachine(object):
                 else:
                     tone_generator.start_dialtone()
                     self._set_state(State.OFFHOOK)
-        
