@@ -6,6 +6,7 @@ import time
 import potsbliz.config as config
 import potsbliz.speeddial as speeddial
 import potsbliz.tone_generator as tone_generator
+from enum import IntEnum
 from potsbliz.logger import Logger
 from potsbliz.userpart import UserPart
 from potsbliz.ipup import Ipup
@@ -16,14 +17,7 @@ from threading import Timer
 
 EOD_TIMER = 5
 SETTINGS_EXTENSION = '#'
-
-
-class State:
-    IDLE = 1
-    RINGING = 2
-    TALK = 3
-    OFFHOOK = 4
-    COLLECTING = 5
+State = IntEnum('State', 'IDLE RINGING TALK OFFHOOK COLLECTING')
 
 
 class StateMachine(dbus.service.Object):
@@ -75,21 +69,10 @@ class StateMachine(dbus.service.Object):
 
 
     def _set_state(self, state):
-        if (state == State.IDLE):
-            self._state_event_log.info('New state: IDLE')
-        elif (state == State.RINGING):
-            self._state_event_log.info('New state: RINGING')
-        elif (state == State.TALK):
-            self._state_event_log.info('New state: TALK')
-        elif (state == State.OFFHOOK):
-            self._state_event_log.info('New state: OFFHOOK')
-        elif (state == State.COLLECTING):
-            self._state_event_log.info('New state: COLLECTING')
-        else:
-            raise ValueError('Invalid state for state machine')
-
-        self.StateChanged(state)
-        self._state = state
+        with Logger(__name__ + '._set_state'):
+            self._state_event_log.info(state.name)
+            self.StateChanged(state)
+            self._state = state
 
 
     def event_incoming_call(self, sender):
