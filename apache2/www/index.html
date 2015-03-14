@@ -78,10 +78,10 @@
             title: '&nbsp;',
             jqueryuiTheme: true,
             actions: {
-                listAction:   '/speeddial.php?action=list',
-                createAction: '/speeddial.php?action=create',
-                updateAction: '/speeddial.php?action=update',
-                deleteAction: '/speeddial.php?action=delete'
+                listAction:   '/speeddial.py/list',
+                createAction: '/speeddial.py/create',
+                updateAction: '/speeddial.py/update',
+                deleteAction: '/speeddial.py/delete'
             },
             fields: {
                 id: {
@@ -90,6 +90,8 @@
                 },
                 shortcut: {
                     title: 'Speed dial',
+                    create: true,
+                    edit: false,
                     width: '25%'
                 },
                 phonenumber: {
@@ -142,8 +144,8 @@
         $('#SipAccountContainer').jtable({
             jqueryuiTheme: true,
             actions: {
-                listAction:   '/config.php?action=list',
-                updateAction: '/config.php?action=update'
+                listAction:   '/sip_account.py/list',
+                updateAction: '/sip_account.py/update'
             },
             fields: {
                 config_key: {
@@ -216,7 +218,7 @@
 			    //alert (dataString);return false;
 			    $.ajax({
 				    type: "POST",
-				    url: "/change_password.php",
+				    url: "/change_password.py",
 				    data: dataString,
 				    dataType: "json",
 				    success: function(response) {
@@ -235,7 +237,7 @@
       	});
 
       	$.ajax({
-  			url: "/info.php",
+  			url: "/info.py",
   			dataType: 'text',
   			success: function(info) {
     			$("#potsbliz_info").text(info);

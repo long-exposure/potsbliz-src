@@ -7,12 +7,12 @@ def convert(number):
     with Logger(__name__ + '.convert') as log:
 
         # read speeddial numbers from config
-        speeddial_numbers = config.get_speeddial_numbers()
-        
+        speeddial_numbers = config.list_speeddial_numbers()
+
         for entry in speeddial_numbers:
-            if (entry[0] == number):
+            if (entry['shortcut'] == number):
                 # remove non-digit characters
-                expanded_number = re.sub('[^0-9]+', '', entry[1])                
+                expanded_number = re.sub('[^0-9]+', '', entry['phonenumber'])                
                 log.debug('Speeddial number found: ' + number + ' => ' + expanded_number)
                 return expanded_number
             
