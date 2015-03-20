@@ -1,0 +1,27 @@
+div.dialpad {
+    //width: 800px;
+    height: 34px;
+    font-size: 20px;
+    margin: 4px 0px;
+    padding: 4px;
+}
+
+input#dp-display {
+    float: left;
+    //width: 100%;
+    overflow: auto;
+    margin: 2px;
+    font-size: 20px;
+}
+
+div.dp-button {
+    float: left;
+    margin: 1px;
+    padding: 4px 12px;
+    color: white;
+    background-color: black;
+}
+
+div.dp-button:active {
+    background-color: gray;
+}
