@@ -1,27 +1,61 @@
+/*
+  POTSBLIZ - Plain Old Telephone Service Beyond Local IP Stack
+  (C)2015  - Norbert Huffschmid - GNU GPL V3 
+*/
+
 div.dialpad {
-    //width: 800px;
-    height: 34px;
-    font-size: 20px;
     margin: 4px 0px;
     padding: 4px;
-}
-
-input#dp-display {
-    float: left;
-    //width: 100%;
-    overflow: auto;
-    margin: 2px;
-    font-size: 20px;
+    overflow:auto;
 }
 
 div.dp-button {
     float: left;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
     margin: 1px;
-    padding: 4px 12px;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 32px; // equals div height
+}
+
+div.dp-number-button {
+    font-size: 28px;
     color: white;
     background-color: black;
 }
 
+div.dp-function-button {
+	background-repeat: no-repeat;
+    background-position: center; 
+	background-size: 32px 32px;
+}
+
 div.dp-button:active {
-    background-color: gray;
+    margin: 2px 0px 0px 2px;
+}
+
+div#dp-backspace-button {
+	background-image: url("/images/backspace.png");
+    background-color: black;
+}
+
+div#dp-call-button {
+	background-image: url("/images/call.png");
+    background-color: green;
+}
+
+div#dp-hangup-button {
+	background-image: url("/images/hangup.png");
+    background-color: red;
+}
+
+input#dp-display {
+    float: left;
+    width: 260px;
+    height: 32px;
+    margin: 1px;
+    box-sizing: border-box;
+    font-size: 20px;
 }

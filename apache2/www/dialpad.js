@@ -15,9 +15,9 @@ $(function () {
             }
             this._dialpad.append($("<div class='dp-button dp-number-button'>*</div>"))
             this._dialpad.append($("<div class='dp-button dp-number-button'>#</div>"))
-            this._dialpad.append($("<div id='dp-delete-button' class='dp-button'>X</div>"))
-            this._dialpad.append($("<div id='dp-call-button' class='dp-button'>C</div>"))
-            this._dialpad.append($("<div id='dp-hangup-button' class='dp-button'>H</div>"))
+            this._dialpad.append($("<div id='dp-backspace-button' class='dp-button dp-function-button'></div>"))
+            this._dialpad.append($("<div id='dp-call-button' class='dp-button dp-function-button'></div>"))
+            this._dialpad.append($("<div id='dp-hangup-button' class='dp-button dp-function-button'></div>"))
 
             $(this.element).append(this._dialpad);
             this._update();
@@ -33,7 +33,7 @@ $(function () {
 				}
 			});
             
-            $("#dp-delete-button").click(function(){
+            $("#dp-backspace-button").click(function(){
             	// remove last number from display
     			$("#dp-display").val($("#dp-display").val().slice(0, -1));
 			});
