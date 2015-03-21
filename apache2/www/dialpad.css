@@ -36,6 +36,11 @@ div.dp-button:active {
     margin: 2px 0px 0px 2px;
 }
 
+div.dp-button:hover{
+	opacity: 0.8;
+	cursor: pointer;
+}
+
 div#dp-backspace-button {
 	background-image: url("/images/backspace.png");
     background-color: black;
