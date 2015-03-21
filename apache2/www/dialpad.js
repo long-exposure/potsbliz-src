@@ -61,6 +61,14 @@ $(function () {
 					url: "/dialpad.py/onhook",
 				});
 			});
+            
+			$("#dp-display").on('input', function(e) {
+ 				self._filter_display();
+			});
+            
+			$("#dp-display").on('change', function() {
+ 				self._filter_display();
+			});
         },
 
         _setOption: function (key, value) {
@@ -80,5 +88,11 @@ $(function () {
 				url: "/dialpad.py/dialed_digits",
 			});
         },
+
+        _filter_display: function () {
+            digits = $("#dp-display").val();
+            $("#dp-display").val(digits.replace(/[^0-9#*]/g, ""));
+        },
+
     });
 });
