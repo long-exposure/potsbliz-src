@@ -5,7 +5,7 @@ $(function () {
         	var self = this;
 
 			// add dialpad to DOM
-            this._dialpad = $("<div class='dialpad ui-corner-all'>");
+            this._dialpad = $("<div class='dialpad ui-widget-content ui-corner-all'>");
             this._dialpad.append($("<input type='text' id='dp-display'>"))
             for (i = 0; i <= 9; i++) {
                 this._dialpad.append($("<div class='dp-button dp-number-button'>" + i + "</div>"))
@@ -92,11 +92,12 @@ $(function () {
         _go_offhook: function (flag) {
         	this._offhook = flag;
         	if (flag == true) {
-				//alert('Going offhook ...');
-        		$(".dialpad").addClass('ui-state-active').removeClass('ui-widget-header');
+        		$("#dp-call-button").hide();
+        		$("#dp-hangup-button").show();        		
         	}
         	else {
-        		$(".dialpad").addClass('ui-widget-header').removeClass('ui-state-active');
+        		$("#dp-call-button").show();
+        		$("#dp-hangup-button").hide();        		
         	}
         },
         
