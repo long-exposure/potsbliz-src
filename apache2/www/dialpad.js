@@ -13,8 +13,8 @@ $(function () {
             this._dialpad.append($("<div class='dp-button dp-number-button'>*</div>"))
             this._dialpad.append($("<div class='dp-button dp-number-button'>#</div>"))
             this._dialpad.append($("<div id='dp-backspace-button' class='dp-button dp-function-button'></div>"))
-            this._dialpad.append($("<div id='dp-call-button' class='dp-button dp-function-button'></div>"))
-            this._dialpad.append($("<div id='dp-hangup-button' class='dp-button dp-function-button'></div>"))
+            this._dialpad.append($("<div id='dp-call-button' class='dp-button dp-function-button'></div>").hide())
+            this._dialpad.append($("<div id='dp-hangup-button' class='dp-button dp-function-button'></div>").hide())
             $(this.element).append(this._dialpad);
             
             // get current state
