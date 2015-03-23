@@ -168,25 +168,39 @@
         $('#BluetoothContainer').jtable('load');
         $('#SipAccountContainer').jtable('load');
         
+        var discovery_timeout;         
         $('#discovery_form :checkbox').change(function() {
-          //alert('discovery changing!')         
           if ($('#DiscoveryCheckbox').is(':checked')) {
         	$.ajax( {
   			  url: "/bluetooth.py/start_discovery",
   			  success: function(info) {
+	        	$.ajax( {
+	  			  url: "/bluetooth.py/get_discoverable_timeout",
+				  dataType: "json",
+	  			  success: function(data) {
+	  			    // checking the Discovering flag always returns true
+	  			    // ==> uncheck checkbox after timeout
+					discovery_timeout = setTimeout(function() {
+						$('#DiscoveryCheckbox').prop('checked', false);
+					}, data.DiscoverableTimeout * 1000);
+				  }
+			    });
     			alert('Make your Bluetooth device visible!');
   			  },
   			  error: function(info) {
-    			alert('Discovery start failed!');
+    			//alert('Discovery start failed!');
+    			$('#DiscoveryCheckbox').prop('checked', false);
   			  },
 		    });
           }
           else {
+  			clearTimeout(discovery_timeout);
         	$.ajax( {
   			  url: "/bluetooth.py/stop_discovery",
-  			  error: function(info) {
-    			alert('Discovery stop failed!');
-  			  },
+  			  // errors occur quite often: we silently ignore them here
+  			  //error: function(info) {
+    			//alert('Discovery stop failed!');
+  			  //},
 		    });
           }    
         });
@@ -248,9 +262,10 @@
   			}
 		});
 
-		// reload bluetooth list periodically if bluetooth tab is selected
+		// reload bluetooth info periodically if bluetooth tab is selected
 		setInterval(function() {
 			if ($('#Tabs').tabs('option', 'selected') == 1) {
+				// load list
 				$('#BluetoothContainer').jtable('load');
 			}
 		}, 3000);

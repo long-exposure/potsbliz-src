@@ -47,6 +47,15 @@ def stop_discovery(req):
     adapter.StopDiscovery()
     
     
+def get_discoverable_timeout (req):
+    req.content_type = 'application/json; charset=UTF8'
+
+    bus = dbus.SystemBus()
+    adapter = dbus.Interface(bus.get_object('org.bluez', '/org/bluez/hci0'), 'org.freedesktop.DBus.Properties')
+    timeout = adapter.Get('org.bluez.Adapter1', 'DiscoverableTimeout')
+    return json.dumps({ "DiscoverableTimeout": timeout })
+
+
 def pair(req):
     req.content_type = 'application/json; charset=UTF8'
     
