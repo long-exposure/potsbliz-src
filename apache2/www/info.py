@@ -1,3 +1,6 @@
+# POTSBLIZ - Plain Old Telephone Service Beyond Local IP Stack
+# (C)2015  - Norbert Huffschmid - GNU GPL V3 
+
 from subprocess import Popen, PIPE
 
 def index(req):

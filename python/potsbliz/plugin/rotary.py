@@ -1,5 +1,5 @@
-# Rotary Dial plugin for Potsbliz
-# (C) 2015 - Norbert Huffschmid
+# Rotary Dial plugin for POTSBLIZ
+# (C)2015  - Norbert Huffschmid - GNU GPL V3 
 
 import dbus
 import dbus.service

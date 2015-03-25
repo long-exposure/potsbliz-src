@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# POTSBLIZ - Plain Old Telephone Service Beyond Local IP Stack
+# (C)2015  - Norbert Huffschmid - GNU GPL V3 
+
 import dbus
 import dbus.service
 import gobject

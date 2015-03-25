@@ -1,5 +1,7 @@
+# POTSBLIZ - Plain Old Telephone Service Beyond Local IP Stack
+# (C)2015  - Norbert Huffschmid - GNU GPL V3 
+
 # IPUP - IP User Part
-# (C) 2015 - Norbert Huffschmid
 
 import time
 from subprocess import Popen, PIPE
