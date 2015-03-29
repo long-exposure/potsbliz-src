@@ -42,14 +42,14 @@ class StateMachine(dbus.service.Object):
                                   'sip:localhost:5065',
                                   'potsbliz',
                                   5061)
-            self._asterisk.__enter__()
+            self._asterisk.start()
 
             sip_account = config.list_sip_accounts()[0]
             self._sip = Ipup(pub,
                              sip_account['identity'],
                              sip_account['proxy'],
                              sip_account['password'])
-            self._sip.__enter__()
+            self._sip.start()
 
             # wait for linphone init
             # playing dailtone or starting pulseaudio during linphone startup breaks
@@ -58,16 +58,16 @@ class StateMachine(dbus.service.Object):
             time.sleep(3)
 
             self._btup = Btup(pub)
-            self._btup.__enter__()
+            self._btup.start()
 
             tone_generator.play_ok_tone()
 
 
     def __exit__(self, type, value, traceback):
         with Logger(__name__ + '.__exit__'):
-            self._sip.__exit__(type, value, traceback)
-            self._asterisk.__exit__(type, value, traceback)
-            self._btup.__exit__(type, value, traceback)
+            self._sip.stop()
+            self._asterisk.stop()
+            self._btup.stop()
 
 
     def _set_state(self, state):

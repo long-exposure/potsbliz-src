@@ -21,8 +21,8 @@ class Ipup(UserPart):
             self._port = port
             
         
-    def __enter__(self):
-        with Logger(__name__ + '.__enter__'):
+    def start(self):
+        with Logger(__name__ + '.start'):
 
             # write linphonec config file
             config_file = '/var/tmp/.linphonerc-' + self._identity
@@ -37,8 +37,8 @@ class Ipup(UserPart):
             self._worker_thread.start()
 
     
-    def __exit__(self, type, value, traceback):
-        with Logger(__name__ + '.__exit__'):
+    def stop(self):
+        with Logger(__name__ + '.stop'):
             self._linphonec.stdin.write("quit\n")
             self._worker_thread.join()
 

@@ -18,11 +18,11 @@ class UserPart(object):
             self._pub = pub
 
 
-    def __enter__(self):
+    def start(self):
         raise NotImplementedError(INHERITANCE_ERROR)
 
     
-    def __exit__(self, type, value, traceback):
+    def stop(self):
         raise NotImplementedError(INHERITANCE_ERROR)
 
     

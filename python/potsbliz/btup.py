@@ -13,8 +13,8 @@ from potsbliz.userpart import UserPart
 
 class Btup(UserPart):
 
-    def __enter__(self):
-        with Logger(__name__ + '.__enter__'):
+    def start(self):
+        with Logger(__name__ + '.start'):
 
             self._bus = dbus.SystemBus()
             
@@ -36,8 +36,8 @@ class Btup(UserPart):
             Thread(target=self._call_removed_worker).start()
 
 
-    def __exit__(self, type, value, traceback):
-        with Logger(__name__ + '.__exit__'):
+    def stop(self):
+        with Logger(__name__ + '.stop'):
             self._call_added_process.terminate()
             self._call_removed_process.terminate()
             self._pulseaudio_process.terminate()
