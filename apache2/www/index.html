@@ -105,7 +105,7 @@
                     title: 'Comment',
                     width: '50%'
                 },
-            }
+            },
         });
         
         $('#BluetoothContainer').jtable({
@@ -167,7 +167,10 @@
                     title: 'Password',
                     list: false
                 },
-            }
+            },
+ 	        rowUpdated: (function (event, data) {
+            	alert('Reboot required!');
+            }),
         });
 
         $('#SpeedDialContainer').jtable('load');
