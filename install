@@ -78,10 +78,12 @@ fi
 
 
 # install potsbliz
+PYTHON_DIST_DIR=/usr/local/lib/python2.7/dist-packages
 cd $DIR
-mkdir -v -p /usr/local/lib/python2.7/dist-packages/potsbliz
+mkdir -v -p $PYTHON_DIST_DIR/potsbliz
 mkdir -v -p /var/www
-cp -r python/potsbliz /usr/local/lib/python2.7/dist-packages
+cp -r python/potsbliz $PYTHON_DIST_DIR
+git describe > $PYTHON_DIST_DIR/potsbliz/potsbliz.version
 cp -v potsbliz /etc/init.d
 cp -v pots-rotary /etc/init.d
 cp -v asterisk/config/sip.conf /etc/asterisk/sip_potsbliz.conf
