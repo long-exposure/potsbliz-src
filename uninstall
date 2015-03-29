@@ -8,11 +8,21 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 
+# determine script directory 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+
 # stop and remove daemon
 /etc/init.d/pots-rotary stop
 /etc/init.d/potsbliz stop
 update-rc.d pots-rotary remove
 update-rc.d potsbliz remove
+
+
+# drop potsbliz database
+mysql -u root -ppotsbliz << EOF
+DROP DATABASE IF EXISTS potsbliz;
+EOF
 
 
 # remove potsbliz web folder
@@ -61,5 +71,5 @@ apt-get update
 
 
 # remove installed wheezy packages
-cat package-list | xargs apt-get -y remove
+cat $DIR/package-list | xargs apt-get -y remove
 apt-get -y autoremove
