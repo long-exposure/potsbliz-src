@@ -27,7 +27,7 @@ $(function () {
 				url: "dialpad.py/get_state",
 				dataType: "json",
 				success: function(data) {
-			    	self._go_offhook(data.State != 'IDLE');
+			    	self._go_offhook((data.State != 'IDLE') && (data.State != 'RINGING'));
 				},
 			});
             
@@ -111,7 +111,7 @@ $(function () {
 				url: "dialpad.py/longpoll_state",
 				dataType: "json",
 				success: function(data) {
-			    	dialpad._go_offhook(data.State != 'IDLE');
+			    	dialpad._go_offhook((data.State != 'IDLE') && (data.State != 'RINGING'));
 			    	dialpad._longpoll_state(dialpad);
 				},
 				error: function(data) {
