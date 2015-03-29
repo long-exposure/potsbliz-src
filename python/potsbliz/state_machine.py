@@ -44,10 +44,11 @@ class StateMachine(dbus.service.Object):
                                   5061)
             self._asterisk.__enter__()
 
+            sip_account = config.list_sip_accounts()[0]
             self._sip = Ipup(pub,
-                             config.get_value('sip_identity'),
-                             config.get_value('sip_proxy'),
-                             config.get_value('sip_password'))
+                             sip_account['identity'],
+                             sip_account['proxy'],
+                             sip_account['password'])
             self._sip.__enter__()
 
             # wait for linphone init

@@ -151,14 +151,21 @@
                 updateAction: '/sip_account.py/update'
             },
             fields: {
-                config_key: {
-                	title: 'SIP Settings',
+                id: {
                     key: true,
-                    edit: false,
-                    width: '20%'
+                    list: false
                 },
-                config_value: {
-                    width: '80%'
+                identity: {
+                    title: 'Identity',
+                    width: '50%'
+                },
+                proxy: {
+                    title: 'Proxy',
+                    width: '50%'
+                },
+                password: {
+                    title: 'Password',
+                    list: false
                 },
             }
         });
