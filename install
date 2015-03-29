@@ -1,0 +1,184 @@
+#!/bin/bash
+
+# This script installs the POTSBLIZ software on Raspberry PI from scratch
+# Preconditions:
+# up-to-date raspbian linux (via apt-get update and apt-get upgrade)
+# timezone configured (via dpkg-reconfigure tzdata or raspi-config)
+# locales configured (via dpkg-reconfigure locales or raspi-config , e.g. de_DE.UTF-8)
+
+
+if [[ $EUID -ne 0 ]]; then
+  echo "This install script requires root privileges"
+  exit 1
+fi
+
+
+echo "Installing POTSBLIZ (Plain Old Telephone Service Beyond Local IP Stack) ..."
+
+
+# change into script directory
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+CWD=$(pwd)
+cd $DIR
+
+# preconfigure packages
+echo "libvpb0 libvpb0/countrycode string 49" | debconf-set-selections
+export MYSQL_ROOT_PASSWORD=potsbliz
+echo "mysql-server-5.5 mysql-server/root_password password ${MYSQL_ROOT_PASSWORD}
+mysql-server-5.5 mysql-server/root_password seen true
+mysql-server-5.5 mysql-server/root_password_again password ${MYSQL_ROOT_PASSWORD}
+mysql-server-5.5 mysql-server/root_password_again seen true
+" | debconf-set-selections
+echo 'libc6 libraries/restart-without-asking boolean true' | sudo debconf-set-selections
+
+
+echo "Install required debian packages ..."
+cat package-list | xargs apt-get -y install
+
+
+# enhance apt source list for jessie
+echo "deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi" >> /etc/apt/sources.list
+
+# enable apt pinning
+echo "Package: *
+Pin: release a=stable
+Pin-Priority: 990
+
+Package: *
+Pin: release a=testing
+Pin-Priority: 100" > /etc/apt/preferences
+
+
+echo "Update package lists ..."
+apt-get update
+
+
+echo "Install required bluetooth software from debian jessie ..."
+apt-get -y -t jessie install bluez bluez-utils libasound2-dev ofono libjson-c-dev
+
+
+# set bluetooth adapter name
+sudo sed -i '/#Name/a Name = Potsbliz' /etc/bluetooth/main.conf
+
+
+# build and install pulseaudio
+if [ ! -e /usr/local/bin/pulseaudio ]
+then
+    echo "Download, build and install pulseaudio (this can take hours) ..."
+    cd $HOME
+	git clone git://anongit.freedesktop.org/pulseaudio/pulseaudio
+	cd pulseaudio
+	git checkout tags/v6.0
+	./autogen.sh
+	make
+	make install
+	ldconfig
+	cd ..
+fi
+
+
+# install potsbliz
+cd $DIR
+mkdir -v -p /usr/local/lib/python2.7/dist-packages/potsbliz
+mkdir -v -p /var/www
+cp -r python/potsbliz /usr/local/lib/python2.7/dist-packages
+cp -v potsbliz /etc/init.d
+cp -v pots-rotary /etc/init.d
+cp -v asterisk/config/sip.conf /etc/asterisk/sip_potsbliz.conf
+cp -v asterisk/config/extensions.conf /etc/asterisk/extensions_potsbliz.conf
+cp -v asterisk/agi/*.agi /usr/share/asterisk/agi-bin
+cp -v apache2/potsbliz /etc/apache2/sites-available
+cp -v -r apache2/www /var/www/potsbliz
+cp -v dbus-1/potsbliz.conf /etc/dbus-1/system.d
+
+
+# patch installed asterisk PBX
+mv /etc/asterisk/sip.conf /etc/asterisk/sip.conf.orig
+mv /etc/asterisk/extensions.conf /etc/asterisk/extensions.conf.orig
+mv /etc/asterisk/sip_potsbliz.conf /etc/asterisk/sip.conf
+mv /etc/asterisk/extensions_potsbliz.conf /etc/asterisk/extensions.conf
+/etc/init.d/asterisk restart
+
+
+# enable local web server
+a2dissite default
+a2ensite potsbliz
+a2enmod auth_mysql
+a2enmod python
+
+ 
+# create javascript links
+ln -s /usr/share/javascript/jquery /var/www/potsbliz/jquery
+ln -s /usr/share/javascript/jquery-ui /var/www/potsbliz/jquery-ui
+ln -s /usr/share/javascript/jquery-ui-themes /var/www/potsbliz/jquery-ui-themes
+
+
+# download jtable javascript library
+cd /usr/share/javascript
+git clone git://github.com/hikalkan/jtable.git
+cd jtable
+git checkout tags/v2.4.0
+ln -s /usr/share/javascript/jtable/lib /var/www/potsbliz/jtable
+
+
+# create mysql database and user
+echo "Creating potsbliz Mysql database ..."
+echo "You will be asked for your Mysql root password ..."
+mysql -u root -p$MYSQL_ROOT_PASSWORD << EOF
+CREATE DATABASE IF NOT EXISTS potsbliz;
+GRANT ALL ON potsbliz.* TO 'potsbliz'@'localhost' IDENTIFIED BY 'potsbliz';
+FLUSH PRIVILEGES;
+EOF
+
+# init database
+mysql -u potsbliz -ppotsbliz << EOF
+USE potsbliz;
+
+CREATE TABLE IF NOT EXISTS speeddial (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  shortcut VARCHAR(3),
+  phonenumber VARCHAR(20),
+  comment VARCHAR(80)
+);
+INSERT IGNORE INTO speeddial VALUES ('1', '21', '123456789', 'MyFirstSpeedDialNumber');
+
+CREATE TABLE IF NOT EXISTS config (
+  config_key VARCHAR(80) PRIMARY KEY,
+  config_value VARCHAR(80),
+  position INT
+);
+INSERT IGNORE INTO config VALUES ('sip_identity', 'sip:mySipId@mySipProvider.com', 1);
+INSERT IGNORE INTO config VALUES ('sip_proxy', 'sip:mySipProxyProvider.com', 2);
+INSERT IGNORE INTO config VALUES ('sip_password', 'mySecretPassword', 3);
+
+CREATE TABLE IF NOT EXISTS mysql_auth (
+  username CHAR(25) NOT NULL,
+  passwd CHAR(32),
+  PRIMARY KEY (username)
+);
+INSERT IGNORE INTO mysql_auth (username, passwd) VALUES ('admin', MD5('admin'));
+EOF
+
+
+# install required python packages
+pip install pypubsub
+pip install netifaces
+pip install enum34
+
+
+# create and start daemon
+update-rc.d potsbliz defaults
+update-rc.d pots-rotary defaults
+/etc/init.d/potsbliz start
+/etc/init.d/pots-rotary start
+
+
+# restore working directory 
+cd $CWD
+
+
+read -p "Reboot required. Reboot now (y/n)? " choice
+case "$choice" in 
+  y|Y ) reboot;;
+  * ) echo "Remember to reboot before using POTSBLIZ!";;
+esac

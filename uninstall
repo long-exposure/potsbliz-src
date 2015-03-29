@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# This script removes the POTSBLIZ software from Raspberry PI
+
+if [[ $EUID -ne 0 ]]; then
+  echo "This uninstall script requires root privileges"
+  exit 1
+fi
+
+
+# stop and remove daemon
+/etc/init.d/pots-rotary stop
+/etc/init.d/potsbliz stop
+update-rc.d pots-rotary remove
+update-rc.d potsbliz remove
+
+
+# remove potsbliz web folder
+rm -R /var/www/potsbliz
+
+
+# remove jtable javascript library
+rm -R /usr/share/javascript/jtable
+
+
+# restore original apache setup
+a2dissite potsbliz
+a2ensite default
+a2dismod auth_mysql
+a2dismod python
+
+
+# restore original asterisk config
+mv /etc/asterisk/sip.conf /etc/asterisk/sip_potsbliz.conf
+mv /etc/asterisk/extensions.conf /etc/asterisk/extensions_potsbliz.conf
+mv /etc/asterisk/sip.conf.orig /etc/asterisk/sip.conf
+mv /etc/asterisk/extensions.conf.orig /etc/asterisk/extensions.conf
+
+
+# remove potsbliz
+rm -R /usr/local/lib/python2.7/dist-packages/potsbliz
+
+
+# this script does NOT remove the self-compiled pulseaudio software
+
+# remove bluetooth software
+apt-get -y remove bluez bluez-utils libasound2-dev ofono libjson-c-dev
+
+
+# remove apt pinning
+rm /etc/apt/preferences
+
+
+# restore apt source list
+sed -i '/potsbliz/Id' /etc/apt/sources.list
+sed -i '/jessie/Id' /etc/apt/sources.list
+
+
+# update package lists
+apt-get update
+
+
+# remove installed wheezy packages
+cat package-list | xargs apt-get -y remove
+apt-get -y autoremove
