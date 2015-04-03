@@ -107,13 +107,11 @@ class Anip(object):
 
 
     def _dialpulse(self, channel):
-        with Logger('Anip::_dialpulse') as log:
-
-            log.debug('Dialpulse detected')
-            self._pulse_counter += 1
-            self._rotation_timer.cancel()
-            self._rotation_timer = Timer(ROTATION_TIMER, self._end_of_rotation)
-            self._rotation_timer.start()
+        # logging skipped due to performance reasons
+        self._pulse_counter += 1
+        self._rotation_timer.cancel()
+        self._rotation_timer = Timer(ROTATION_TIMER, self._end_of_rotation)
+        self._rotation_timer.start()
 
 
     def _ground_key(self, channel):
