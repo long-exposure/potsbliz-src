@@ -84,5 +84,9 @@ class Ipup(UserPart):
                 if (message.find('Call terminated.') >= 0):
                     self._pub.sendMessage(UserPart.TOPIC_TERMINATE, sender=self)
 
+                # TODO: handle user busy!
+                if (message.endswith('error.\n')):
+                    self._pub.sendMessage(UserPart.TOPIC_TERMINATE, sender=self)
+
                 if (message.startswith('linphonec> Registration') and not message.endswith('successful.\n')):
                     log.error('Registration at remote sip server failed')
