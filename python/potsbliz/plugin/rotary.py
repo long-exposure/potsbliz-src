@@ -8,6 +8,7 @@ import RPi.GPIO as GPIO
 import signal
 import time
 from dbus.mainloop.glib import DBusGMainLoop
+from dbus.exceptions import DBusException
 from datetime import datetime
 from threading import Thread, Timer
 from potsbliz.logger import Logger
@@ -138,51 +139,59 @@ class Anip(object):
 
     def _offhook(self):
         with Logger('Anip::_offhook') as log:
-
-            if (self._hookflash_counter == 0):
-                self._state_machine.Offhook()
-                self._pulse_counter = 0
-            else:
-                self._hookflash_down_timer.cancel()
-                self._hookflash_up_timer.cancel()
-                log.debug('Starting hookflash_up timer ...')
-                self._hookflash_up_timer = Timer(HOOKFLASH_UP_TIMER, self._hookflash_up_timeout)
-                self._hookflash_up_timer.start()
-    
+            try:
+                if (self._hookflash_counter == 0):
+                    self._state_machine.Offhook()
+                    self._pulse_counter = 0
+                else:
+                    self._hookflash_down_timer.cancel()
+                    self._hookflash_up_timer.cancel()
+                    log.debug('Starting hookflash_up timer ...')
+                    self._hookflash_up_timer = Timer(HOOKFLASH_UP_TIMER, self._hookflash_up_timeout)
+                    self._hookflash_up_timer.start()
+            except DBusException, e:
+                log.warning(str(e))
+                
     
     def _end_of_rotation(self):
-        with Logger('Anip::_end_of_rotation'):
-
-            if (self._pulse_counter == 10):
-                self._pulse_counter = 0 # 10 -> 0
-
-            self._state_machine.DigitDialed(str(self._pulse_counter))
-
-            self._pulse_counter = 0
+        with Logger('Anip::_end_of_rotation') as log:
+            try:
+                if (self._pulse_counter == 10):
+                    self._pulse_counter = 0 # 10 -> 0
+    
+                self._state_machine.DigitDialed(str(self._pulse_counter))
+    
+                self._pulse_counter = 0
+            except DBusException, e:
+                log.warning(str(e))
 
 
     def _hookflash_down_timeout(self):
-        with Logger('Anip::_hookflash_down_timeout'):        
-            
-            self._hookflash_up_timer.cancel()
-            self._hookflash_counter = 0
-            
-            self._state_machine.Onhook()
+        with Logger('Anip::_hookflash_down_timeout') as log:        
+            try:
+                self._hookflash_up_timer.cancel()
+                self._hookflash_counter = 0
+                
+                self._state_machine.Onhook()
+            except DBusException, e:
+                log.warning(str(e))
 
 
     def _hookflash_up_timeout(self):
         with Logger('Anip::_hookflash_up_timeout') as log:        
-
-            log.debug(str(self._hookflash_counter) + ' hookflashs detected')
-            
-            if (self._hookflash_counter == 1):
-                self._state_machine.DigitDialed('#')
-            elif (self._hookflash_counter == 2):
-                self._state_machine.DigitDialed('*')
-            else:
-                log.debug('Hookflashs ignored')
+            try:
+                log.debug(str(self._hookflash_counter) + ' hookflashs detected')
                 
-            self._hookflash_counter = 0
+                if (self._hookflash_counter == 1):
+                    self._state_machine.DigitDialed('#')
+                elif (self._hookflash_counter == 2):
+                    self._state_machine.DigitDialed('*')
+                else:
+                    log.debug('Hookflashs ignored')
+                    
+                self._hookflash_counter = 0
+            except DBusException, e:
+                log.warning(str(e))
 
 
     def _ring_worker(self):        
