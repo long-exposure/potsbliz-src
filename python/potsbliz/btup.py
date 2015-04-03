@@ -137,20 +137,22 @@ class Btup(UserPart):
 
 
     def _call_added_worker(self):        
-        with Logger(__name__ + '._call_added_worker'):
+        with Logger(__name__ + '._call_added_worker') as log:
             while True:
                 line = self._call_added_process.stdout.readline()
                 if (line == ''):
                     break
                 if ('\"incoming\"' in line):
+                    log.debug('CallAdded signal detected')
                     self._pub.sendMessage(UserPart.TOPIC_INCOMING_CALL, sender=self)
 
 
     def _call_removed_worker(self):        
-        with Logger(__name__ + '._call_removed_worker'):
+        with Logger(__name__ + '._call_removed_worker') as log:
             while True:
                 line = self._call_removed_process.stdout.readline()
                 if (line == ''):
                     break
                 if ('CallRemoved' in line):
+                    log.debug('CallRemoved signal detected')
                     self._pub.sendMessage(UserPart.TOPIC_TERMINATE, sender=self)
