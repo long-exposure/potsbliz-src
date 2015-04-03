@@ -4,7 +4,6 @@
 import logging
 import logging.handlers
 import os
-import potsbliz.tone_generator as tone_generator
 
 
 class Logger(object):
@@ -38,7 +37,6 @@ class Logger(object):
     def __exit__(self, type, value, traceback):
         if (value != None):
             self.__log.error(self.__name + ": " + str(value))
-            tone_generator.play_error_tone()
         self.__log.debug(self.__name + ': Exit')
         return False
 
@@ -57,4 +55,3 @@ class Logger(object):
         
     def error(self, message):
         self.__log.error(self.__name + ": " + message)
-        tone_generator.play_error_tone()
