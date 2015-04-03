@@ -97,21 +97,22 @@ class StateMachine(dbus.service.Object):
     
     @dbus.service.method(dbus_interface='net.longexposure.potsbliz.statemachine', in_signature='', out_signature='')
     def Onhook(self):
-        with Logger(__name__ + '.event_onhook'):
-            if (self._state == State.OFFHOOK):
-                tone_generator.stop_dialtone()
-                self._set_state(State.IDLE)
-            elif (self._state == State.COLLECTING):
-                self._set_state(State.IDLE)
-            elif (self._state == State.TALK):
-                self._up.terminate_call()
-                self._up = None
-                self._set_state(State.IDLE)
+        with Logger(__name__ + '.Onhook') as log:
+            try:
+                if (self._state == State.OFFHOOK):
+                    tone_generator.stop_dialtone()
+                elif (self._state == State.TALK):
+                    self._up.terminate_call()
+            except Exception, e:
+                log.error(str(e))
+                
+            self._up = None
+            self._set_state(State.IDLE)
     
     
     @dbus.service.method(dbus_interface='net.longexposure.potsbliz.statemachine', in_signature='', out_signature='')
     def Offhook(self):
-        with Logger(__name__ + '.event_offhook'):
+        with Logger(__name__ + '.Offhook'):
             if (self._state == State.IDLE):
                 tone_generator.start_dialtone()
                 self._set_state(State.OFFHOOK)
@@ -122,7 +123,7 @@ class StateMachine(dbus.service.Object):
 
     @dbus.service.method(dbus_interface='net.longexposure.potsbliz.statemachine', in_signature='s', out_signature='')
     def DigitDialed(self, digit):
-        with Logger(__name__ + '.event_digit_dialed') as log:
+        with Logger(__name__ + '.DigitDialed') as log:
             
             log.info('Dialed digit: ' + digit)
             
