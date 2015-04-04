@@ -41,6 +41,9 @@ class Btup(UserPart):
             self._call_added_process.terminate()
             self._call_removed_process.terminate()
             self._pulseaudio_process.terminate()
+            self._call_added_process.wait()
+            self._call_removed_process.wait()
+            self._pulseaudio_process.wait()
 
 
     def make_call(self, called_number):

@@ -25,6 +25,7 @@ def stop_dialtone():
     with _dialtone_lock:
         if (_dialtone_proc != None):
             _dialtone_proc.terminate()
+            _dialtone_proc.wait()
             _dialtone_proc = None
 
 
