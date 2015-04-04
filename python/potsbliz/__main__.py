@@ -16,6 +16,8 @@ class Potsbliz(object):
     def run(self):
         with Logger(__name__ + '.run') as log:
             
+            log.info('Starting POTSBLIZ ...')
+            
             DBusGMainLoop(set_as_default=True)
             with StateMachine():
 

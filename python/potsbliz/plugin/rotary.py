@@ -36,12 +36,24 @@ class Anip(object):
     
 
     def __init__(self):
-        with Logger('Anip::__init__'):
+        with Logger('Anip::__init__') as log:
             bus = dbus.SystemBus()
-            self._state_machine = dbus.Interface(bus.get_object('net.longexposure.potsbliz', '/StateMachine'),
-                                                 'net.longexposure.potsbliz.statemachine')
 
-            self._state_machine.connect_to_signal('StateChanged', self.state_changed)
+            # in case that POTSBLIZ is not yet ready to connect we are patient ... 
+            trial_counter = 5
+            while (True):
+                try:
+                    self._state_machine = dbus.Interface(bus.get_object('net.longexposure.potsbliz', '/StateMachine'),
+                                                         'net.longexposure.potsbliz.statemachine')
+                    self._state_machine.connect_to_signal('StateChanged', self.state_changed)
+                    log.info('Successfully connected to POTSBLIZ')
+                    break; # connection established
+                except DBusException, e:
+                    log.warning(str(e))
+                    time.sleep(1)
+                    trial_counter -= 1
+                    if (trial_counter == 0):
+                        raise Exception('Cannot connect to POTSBLIZ!')
 
 
     def __enter__(self):
@@ -208,6 +220,8 @@ class Anip(object):
 if __name__ == '__main__':
     with Logger('rotary::__main__') as log:
         
+        log.info('Rotary Dial plugin for POTSBLIZ ...')
+
         DBusGMainLoop(set_as_default=True)
     
         loop = gobject.MainLoop()
