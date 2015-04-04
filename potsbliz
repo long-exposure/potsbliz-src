@@ -24,8 +24,8 @@ case "$1" in
     
     if [ ! -d /var/log/apache2 ]; then
         mkdir /var/log/apache2
+        /etc/init.d/apache2 restart
     fi
-    /etc/init.d/apache2 start
     
     echo "Starting potsbliz"
     start-stop-daemon --start --pidfile $PIDFILE --make-pidfile --background --exec $DAEMON -- $ARGS
@@ -35,7 +35,6 @@ case "$1" in
     echo "Shutting down potsbliz"
     start-stop-daemon --stop --pidfile $PIDFILE --retry 10
     rm $PIDFILE
-    /etc/init.d/apache2 stop
     ;;
 
     restart)
