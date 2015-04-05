@@ -12,6 +12,7 @@ class UserPart(object):
 
     TOPIC_INCOMING_CALL = 'topic_incoming_call'
     TOPIC_TERMINATE = 'topic_terminate'    
+    TOPIC_BUSY = 'topic_busy'    
 
     def __init__(self, pub):
         with Logger(__name__ + '.__init__'):

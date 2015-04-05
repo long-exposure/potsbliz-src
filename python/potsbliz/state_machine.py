@@ -18,7 +18,7 @@ from threading import Timer
 
 EOD_TIMER = 5
 SETTINGS_EXTENSION = '#'
-State = IntEnum('State', 'IDLE RINGING TALK OFFHOOK COLLECTING')
+State = IntEnum('State', 'IDLE RINGING TALK OFFHOOK COLLECTING BUSY')
 
 
 class StateMachine(dbus.service.Object):
@@ -36,6 +36,7 @@ class StateMachine(dbus.service.Object):
 
             pub.subscribe(self.event_incoming_call, UserPart.TOPIC_INCOMING_CALL)
             pub.subscribe(self.event_terminate, UserPart.TOPIC_TERMINATE)
+            pub.subscribe(self.event_busy, UserPart.TOPIC_BUSY)
 
             self._asterisk = Ipup(pub,
                                   'sip:potsbliz@localhost:5065',
@@ -94,6 +95,15 @@ class StateMachine(dbus.service.Object):
             elif (self._state == State.TALK):
                 tone_generator.start_dialtone()
                 self._set_state(State.OFFHOOK)
+
+    
+    def event_busy(self, sender):
+        with Logger(__name__ + '.event_busy'):
+            if (self._state == State.TALK):
+                self._up = None
+                tone_generator.start_busytone()
+                self._set_state(State.BUSY)
+
     
     @dbus.service.method(dbus_interface='net.longexposure.potsbliz.statemachine', in_signature='', out_signature='')
     def Onhook(self):
@@ -101,6 +111,8 @@ class StateMachine(dbus.service.Object):
             try:
                 if (self._state == State.OFFHOOK):
                     tone_generator.stop_dialtone()
+                elif (self._state == State.BUSY):
+                    tone_generator.stop_busytone()
                 elif (self._state == State.TALK):
                     self._up.terminate_call()
             except Exception, e:
