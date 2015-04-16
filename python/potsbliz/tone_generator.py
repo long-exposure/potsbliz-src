@@ -9,6 +9,7 @@ from time import sleep
 
 _dialtone_lock = Lock()
 _dialtone_proc = None
+_stop_busytone_flag = False
 
 
 def start_dialtone():
@@ -30,13 +31,15 @@ def stop_dialtone():
 
 
 def start_busytone():
-    thread = Thread(target=self._busytone_worker)
-    self._stop_busytone_flag = False
+    global _stop_busytone_flag
+    thread = Thread(target=_busytone_worker)
+    _stop_busytone_flag = False
     thread.start()
 
 
 def stop_busytone():
-    self._stop_busytone_flag = True
+    global _stop_busytone_flag
+    _stop_busytone_flag = True
 
 
 def play_ok_tone():
@@ -54,7 +57,8 @@ def play_error_tone():
 
 
 def _busytone_worker():
-    while(self._stop_busytone_flag == False):
+    global _stop_busytone_flag
+    while(_stop_busytone_flag == False):
         p = subprocess.Popen(["play", "-n", "synth", "1", "sin", "425", "sin", "425", "sin", "350"])
         p.wait()
         sleep(0.5)
