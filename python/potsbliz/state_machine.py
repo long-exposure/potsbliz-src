@@ -3,16 +3,14 @@
 
 import dbus
 import dbus.service
+import subprocess
 import time
 import potsbliz.config as config
 import potsbliz.speeddial as speeddial
 import potsbliz.tone_generator as tone_generator
 from enum import IntEnum
 from potsbliz.logger import Logger
-from potsbliz.userpart import UserPart
-from potsbliz.ipup import Ipup
-from potsbliz.btup import Btup
-from pubsub import pub
+from potsbliz.up.ipup import Ipup
 from threading import Timer
 
 
@@ -24,8 +22,12 @@ State = IntEnum('State', 'IDLE RINGING TALK OFFHOOK COLLECTING BUSY')
 class StateMachine(dbus.service.Object):
     
     def __init__(self):
-        busName = dbus.service.BusName('net.longexposure.potsbliz', bus = dbus.SystemBus())
-        dbus.service.Object.__init__(self, busName, '/StateMachine')
+        with Logger(__name__ + '.__init__'):
+        
+            self._userparts = []
+            
+            busName = dbus.service.BusName('net.longexposure.potsbliz', bus = dbus.SystemBus())
+            dbus.service.Object.__init__(self, busName, '/StateMachine')
 
 
     def __enter__(self):
@@ -34,23 +36,30 @@ class StateMachine(dbus.service.Object):
             self._state_event_log = Logger(__name__)
             self._set_state(State.IDLE)
 
-            pub.subscribe(self.event_incoming_call, UserPart.TOPIC_INCOMING_CALL)
-            pub.subscribe(self.event_terminate, UserPart.TOPIC_TERMINATE)
-            pub.subscribe(self.event_busy, UserPart.TOPIC_BUSY)
+            #pub.subscribe(self.event_incoming_call, UserPart.TOPIC_INCOMING_CALL)
+            #pub.subscribe(self.event_terminate, UserPart.TOPIC_TERMINATE)
+            #pub.subscribe(self.event_busy, UserPart.TOPIC_BUSY)
 
+            '''
             self._asterisk = Ipup(pub,
                                   'sip:potsbliz@localhost:5065',
                                   'sip:localhost:5065',
                                   'potsbliz',
                                   5061)
             self._asterisk.start()
-
+            '''
+            self._asterisk = subprocess.Popen(['python', '-m', 'potsbliz.up.ipup',
+                                               'sip:potsbliz@localhost:5065',
+                                               'sip:localhost:5065',
+                                               'potsbliz',
+                                               '5061'])
+            
             sip_account = config.list_sip_accounts()[0]
-            self._sip = Ipup(pub,
-                             sip_account['identity'],
-                             sip_account['proxy'],
-                             sip_account['password'])
-            self._sip.start()
+            self._sip = subprocess.Popen(['python', '-m', 'potsbliz.up.ipup',
+                                          sip_account['identity'],
+                                          sip_account['proxy'],
+                                          sip_account['password'],
+                                          '5060'])
 
             # wait for linphone init
             # playing dailtone or starting pulseaudio during linphone startup breaks
@@ -58,17 +67,24 @@ class StateMachine(dbus.service.Object):
             # make test with simultanuous dialtone and ringing!!!
             time.sleep(3)
 
-            self._btup = Btup(pub)
-            self._btup.start()
+            #self._btup = Btup(pub)
+            #self._btup.start()
+            self._btup = subprocess.Popen(['python', '-m', 'potsbliz.up.btup'])
 
             tone_generator.play_ok_tone()
 
 
     def __exit__(self, type, value, traceback):
         with Logger(__name__ + '.__exit__'):
-            self._sip.stop()
-            self._asterisk.stop()
-            self._btup.stop()
+            #self._sip.stop()
+            #self._asterisk.stop()
+            #self._btup.stop()
+            self._sip.terminate()
+            self._asterisk.terminate()
+            self._btup.terminate()
+            self._sip.wait()
+            self._asterisk.wait()
+            self._btup.wait()
 
 
     def _set_state(self, state):
@@ -81,14 +97,15 @@ class StateMachine(dbus.service.Object):
     def event_incoming_call(self, sender):
         with Logger(__name__ + '.event_incoming_call'):
             if (self._state == State.IDLE):
-                self._up = sender
+                self._up = dbus.Interface(dbus.SystemBus().get_object(sender, '/Userpart'),
+                                          'net.longexposure.potsbliz.userpart')
                 self._set_state(State.RINGING)
             else:
-                sender.terminate_call()
+                sender.TerminateCall()
     
     
-    def event_terminate(self, sender):
-        with Logger(__name__ + '.event_terminate'):
+    def event_release(self, sender):
+        with Logger(__name__ + '.event_release'):
             self._up = None
             if (self._state == State.RINGING):
                 self._set_state(State.IDLE)
@@ -105,6 +122,40 @@ class StateMachine(dbus.service.Object):
                 self._set_state(State.BUSY)
 
     
+    @dbus.service.method(dbus_interface='net.longexposure.potsbliz.statemachine',
+                         in_signature='', out_signature='',
+                         sender_keyword='sender')
+    def Register(self, sender=None):
+        with Logger(__name__ + '.Register') as log:
+            if (sender != None):
+                log.debug('Registering ' + sender)
+                
+                # add sender to list of registered userparts            
+                self._userparts.append(sender)
+                bus = dbus.SystemBus()
+                userpart = dbus.Interface(bus.get_object(sender, '/Userpart'),
+                                                         'net.longexposure.potsbliz.userpart')
+                userpart.connect_to_signal('IncomingCall', self.event_incoming_call, sender_keyword='sender')
+                userpart.connect_to_signal('Release', self.event_release, sender_keyword='sender')
+                userpart.connect_to_signal('Busy', self.event_busy, sender_keyword='sender')
+
+                log.debug('Registered userparts: ' + str(len(self._userparts)))
+
+
+    @dbus.service.method(dbus_interface='net.longexposure.potsbliz.statemachine',
+                         in_signature='', out_signature='',
+                         sender_keyword='sender')
+    def Unregister(self, sender=None):
+        with Logger(__name__ + '.Unregister') as log:
+            if (sender != None):
+                log.debug('Unregistering ' + sender)
+                
+                # remove sender to list of registered userparts            
+                self._userparts.remove(sender)
+
+                log.debug('Registered userparts: ' + str(len(self._userparts)))
+
+
     @dbus.service.method(dbus_interface='net.longexposure.potsbliz.statemachine', in_signature='', out_signature='')
     def Onhook(self):
         with Logger(__name__ + '.Onhook') as log:
@@ -114,7 +165,7 @@ class StateMachine(dbus.service.Object):
                 elif (self._state == State.BUSY):
                     tone_generator.stop_busytone()
                 elif (self._state == State.TALK):
-                    self._up.terminate_call()
+                    self._up.TerminateCall()
             except Exception, e:
                 log.error(str(e))
                 
@@ -129,7 +180,7 @@ class StateMachine(dbus.service.Object):
                 tone_generator.start_dialtone()
                 self._set_state(State.OFFHOOK)
             elif (self._state == State.RINGING):
-                self._up.answer_call()
+                self._up.AnswerCall()
                 self._set_state(State.TALK)
 
 
@@ -157,7 +208,7 @@ class StateMachine(dbus.service.Object):
                     self._eod_timer.start()
             elif (self._state == State.TALK):
                 log.info('Send DTMF digit: ' + digit)
-                self._up.send_dtmf(digit)
+                self._up.SendDtmf(digit)
 
 
     @dbus.service.method(dbus_interface='net.longexposure.potsbliz.statemachine', in_signature='', out_signature='i')
@@ -179,9 +230,14 @@ class StateMachine(dbus.service.Object):
                 log.info('Make call to: ' + called_number)
                 
                 if (called_number == SETTINGS_EXTENSION):
-                    self._up = self._asterisk
-                    success = self._up.make_call('500')
+                    #self._up = self._asterisk
+                    #success = self._up.make_call('500')
+                    # TODO: find better routing strategy here!
+                    self._up = dbus.Interface(dbus.SystemBus().get_object(self._userparts[0], '/Userpart'),
+                                              'net.longexposure.potsbliz.userpart')
+                    success = self._up.MakeCall('500')
                 else:
+                    '''
                     # first we try it via bluetooth
                     self._up = self._btup
                     success = self._up.make_call(called_number)
@@ -189,6 +245,11 @@ class StateMachine(dbus.service.Object):
                         # then we try sip
                         self._up = self._sip
                         success = self._up.make_call(called_number)
+                    '''
+                    # TODO: find better routing strategy here!
+                    self._up = dbus.Interface(dbus.SystemBus().get_object(self._userparts[1], '/Userpart'),
+                                              'net.longexposure.potsbliz.userpart')
+                    success = self._up.MakeCall(called_number)
 
                 if (success == True):
                     self._set_state(State.TALK)

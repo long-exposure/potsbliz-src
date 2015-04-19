@@ -5,16 +5,23 @@
 
 import dbus
 import subprocess
+import sys
 import time
 from threading import Thread
 from potsbliz.logger import Logger
-from potsbliz.userpart import UserPart
+from potsbliz.up.userpart import UserPart
 
 
 class Btup(UserPart):
 
-    def start(self):
-        with Logger(__name__ + '.start'):
+    def __init__(self):
+        
+        with Logger(__name__ + '.__init__') as log:
+            super(Btup, self).__init__('net.longexposure.potsbliz.btup') # call base class constructor
+
+
+    def __enter__(self):
+        with Logger(__name__ + '.__enter__'):
 
             self._bus = dbus.SystemBus()
             
@@ -34,10 +41,14 @@ class Btup(UserPart):
 
             Thread(target=self._call_added_worker).start()
             Thread(target=self._call_removed_worker).start()
+            
+            self.register()
+            
+            return self
 
 
-    def stop(self):
-        with Logger(__name__ + '.stop'):
+    def __exit__(self, type, value, traceback):
+        with Logger(__name__ + '.__exit__'):
             self._call_added_process.terminate()
             self._call_removed_process.terminate()
             self._pulseaudio_process.terminate()
@@ -46,8 +57,8 @@ class Btup(UserPart):
             self._pulseaudio_process.wait()
 
 
-    def make_call(self, called_number):
-        with Logger(__name__ + '.make_call') as log:
+    def MakeCall(self, called_number):
+        with Logger(__name__ + '.MakeCall') as log:
 
             ofono_manager = dbus.Interface(self._bus.get_object('org.ofono', '/'),
                                          'org.ofono.Manager')
@@ -68,8 +79,8 @@ class Btup(UserPart):
             return False # no active modem found
 
 
-    def answer_call(self):
-        with Logger(__name__ + '.answer_call') as log:
+    def AnswerCall(self):
+        with Logger(__name__ + '.AnswerCall') as log:
             
             ofono_manager = dbus.Interface(self._bus.get_object('org.ofono', '/'),
                                            'org.ofono.Manager')
@@ -95,8 +106,8 @@ class Btup(UserPart):
                     call.Answer()
 
 
-    def send_dtmf(self, digit):
-        with Logger(__name__ + '.send_dtmf') as log:
+    def SendDtmf(self, digit):
+        with Logger(__name__ + '.SendDtmf') as log:
 
             log.debug('Dbus: Get ofono manager')
             ofono_manager = dbus.Interface(self._bus.get_object('org.ofono', '/'),
@@ -126,12 +137,13 @@ class Btup(UserPart):
                     log.debug('Dbus: Tone sent.')
             
 
-    def terminate_call(self):
-        with Logger(__name__ + '.terminate_call'):
+    def TerminateCall(self):
+        with Logger(__name__ + '.TerminateCall'):
             
             ofono_manager = dbus.Interface(self._bus.get_object('org.ofono', '/'),
                                            'org.ofono.Manager')
             modems = ofono_manager.GetModems()
+            # TODO: fix this!
             modem_path = modems[0][0]
 
             vcm = dbus.Interface(self._bus.get_object('org.ofono', modem_path),
@@ -147,7 +159,7 @@ class Btup(UserPart):
                     break
                 if ('\"incoming\"' in line):
                     log.debug('CallAdded signal detected')
-                    self._pub.sendMessage(UserPart.TOPIC_INCOMING_CALL, sender=self)
+                    self.IncomingCall()
 
 
     def _call_removed_worker(self):        
@@ -158,4 +170,15 @@ class Btup(UserPart):
                     break
                 if ('CallRemoved' in line):
                     log.debug('CallRemoved signal detected')
-                    self._pub.sendMessage(UserPart.TOPIC_TERMINATE, sender=self)
+                    self.Release()
+
+
+if __name__ == '__main__':
+    with Logger('btup::__main__') as log:
+        
+        log.info('Bluetooth userpart for POTSBLIZ started ...')
+
+        with Btup() as userpart:
+            userpart.run()
+        
+        log.info('Bluetooth userpart for POTSBLIZ terminated')

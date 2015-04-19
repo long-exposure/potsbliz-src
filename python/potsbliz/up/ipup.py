@@ -3,26 +3,27 @@
 
 # IPUP - IP User Part
 
-import time
+import sys
 from subprocess import Popen, PIPE
 from threading import Thread
 from potsbliz.logger import Logger
-from potsbliz.userpart import UserPart
+from potsbliz.up.userpart import UserPart
 
 
 class Ipup(UserPart):
     
-    def __init__(self, pub, identity, proxy, password, port=5060):
-        with Logger(__name__ + '.__init__'):
-            super(Ipup, self).__init__(pub) # call base class constructor
+    def __init__(self, identity, proxy, password, port=5060):
+        
+        with Logger(__name__ + '.__init__') as log:
+            super(Ipup, self).__init__('net.longexposure.potsbliz.ipup.port' + str(port)) # call base class constructor
             self._identity = identity
             self._proxy = proxy
             self._password = password
             self._port = port
             
         
-    def start(self):
-        with Logger(__name__ + '.start'):
+    def __enter__(self):
+        with Logger(__name__ + '.__enter__'):
 
             # write linphonec config file
             config_file = '/var/tmp/.linphonerc-' + self._identity
@@ -35,34 +36,36 @@ class Ipup(UserPart):
 
             self._worker_thread = Thread(target=self._linphone_worker)
             self._worker_thread.start()
+            
+            return self
 
     
-    def stop(self):
-        with Logger(__name__ + '.stop'):
+    def __exit__(self, type, value, traceback):
+        with Logger(__name__ + '.__exit__'):
             self._linphonec.stdin.write("quit\n")
             self._worker_thread.join()
 
     
-    def make_call(self, called_number):
-        with Logger(__name__ + '.make_call'):
+    def MakeCall(self, called_number):
+        with Logger(__name__ + '.MakeCall'):
             sip_provider = self._identity.split('@')[1]
             destination = 'sip:' + called_number + '@' + sip_provider
             self._linphonec.stdin.write('call ' + destination + '\n')
             return True
         
         
-    def answer_call(self):
-        with Logger(__name__ + '.answer_call'):
+    def AnswerCall(self):
+        with Logger(__name__ + '.AnswerCall'):
             self._linphonec.stdin.write('answer\n')
         
         
-    def send_dtmf(self, digit):
-        with Logger(__name__ + '.send_dtmf'):
+    def SendDtmf(self, digit):
+        with Logger(__name__ + '.SendDtmf'):
             self._linphonec.stdin.write(digit + '\n')
         
         
-    def terminate_call(self):
-        with Logger(__name__ + '.terminate_call'):
+    def TerminateCall(self):
+        with Logger(__name__ + '.TerminateCall'):
             self._linphonec.stdin.write('terminate\n')
 
 
@@ -76,16 +79,34 @@ class Ipup(UserPart):
             while self._linphonec.poll() is None:
                 
                 message = self._linphonec.stdout.readline()
-                log.info('Linphonec: ' + message)
+                log.debug('Linphonec: ' + message)
 
                 if (message.find('Receiving new incoming call') >= 0):
-                    self._pub.sendMessage(UserPart.TOPIC_INCOMING_CALL, sender=self)
-
+                    self.IncomingCall()
+                    
                 if (message.find('Call terminated.') >= 0):
-                    self._pub.sendMessage(UserPart.TOPIC_TERMINATE, sender=self)
+                    self.Release()
 
                 if (message.endswith('busy.\n')):
-                    self._pub.sendMessage(UserPart.TOPIC_BUSY, sender=self)
+                    self.Busy()
 
-                if (message.startswith('linphonec> Registration') and not message.endswith('successful.\n')):
-                    log.error('Registration at remote sip server failed')
+                if (message.startswith('linphonec> Registration')):
+                    if (message.endswith('successful.\n')):
+                        self.register()
+                    else:
+                        self.unregister()
+                        log.error('Registration at remote sip server failed')
+
+
+if __name__ == '__main__':
+    with Logger('ipup::__main__') as log:
+        
+        log.info('IP userpart for POTSBLIZ started ...')
+
+        if (len(sys.argv) != 5):
+            raise ValueError('4 arguments expected, %d received' % (len(sys.argv) - 1))
+
+        with Ipup(sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4])) as userpart:
+            userpart.run()
+        
+        log.info('IP userpart for POTSBLIZ terminated')

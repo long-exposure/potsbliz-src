@@ -220,7 +220,7 @@ class Anip(object):
 if __name__ == '__main__':
     with Logger('rotary::__main__') as log:
         
-        log.info('Rotary Dial plugin for POTSBLIZ ...')
+        log.info('Starting rotary dial plugin for POTSBLIZ ...')
 
         DBusGMainLoop(set_as_default=True)
     

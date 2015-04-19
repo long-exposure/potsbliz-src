@@ -162,7 +162,6 @@ EOF
 
 
 # install required python packages
-pip install pypubsub
 pip install netifaces
 pip install enum34
 
