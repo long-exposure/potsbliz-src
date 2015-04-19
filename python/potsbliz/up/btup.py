@@ -138,17 +138,25 @@ class Btup(UserPart):
             
 
     def TerminateCall(self):
-        with Logger('Btup::TerminateCall'):
+        with Logger('Btup::TerminateCall') as log:
             
             ofono_manager = dbus.Interface(self._bus.get_object('org.ofono', '/'),
                                            'org.ofono.Manager')
             modems = ofono_manager.GetModems()
-            # TODO: fix this!
-            modem_path = modems[0][0]
 
-            vcm = dbus.Interface(self._bus.get_object('org.ofono', modem_path),
+            for path, properties in modems:
+                log.debug('modem path: %s' % (path))
+                if ('org.ofono.VoiceCallManager' not in properties['Interfaces']):
+                    continue
+
+                vcm = dbus.Interface(self._bus.get_object('org.ofono', path),
                                      'org.ofono.VoiceCallManager')
-            vcm.HangupAll()
+                calls = vcm.GetCalls()
+
+                for path, properties in calls:
+                    call = dbus.Interface(self._bus.get_object('org.ofono', path),
+                                          'org.ofono.VoiceCall')
+                    call.Hangup()
 
 
     def _call_added_worker(self):        
