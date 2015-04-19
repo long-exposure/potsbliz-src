@@ -14,7 +14,7 @@ class Ipup(UserPart):
     
     def __init__(self, identity, proxy, password, port=5060):
         
-        with Logger(__name__ + '.__init__') as log:
+        with Logger('Ipup::__init__') as log:
             super(Ipup, self).__init__('net.longexposure.potsbliz.ipup.port' + str(port)) # call base class constructor
             self._identity = identity
             self._proxy = proxy
@@ -23,7 +23,7 @@ class Ipup(UserPart):
             
         
     def __enter__(self):
-        with Logger(__name__ + '.__enter__'):
+        with Logger('Ipup::__enter__'):
 
             # write linphonec config file
             config_file = '/var/tmp/.linphonerc-' + self._identity
@@ -41,13 +41,13 @@ class Ipup(UserPart):
 
     
     def __exit__(self, type, value, traceback):
-        with Logger(__name__ + '.__exit__'):
+        with Logger('Ipup::__exit__'):
             self._linphonec.stdin.write("quit\n")
             self._worker_thread.join()
 
     
     def MakeCall(self, called_number):
-        with Logger(__name__ + '.MakeCall'):
+        with Logger('Ipup::MakeCall'):
             sip_provider = self._identity.split('@')[1]
             destination = 'sip:' + called_number + '@' + sip_provider
             self._linphonec.stdin.write('call ' + destination + '\n')
@@ -55,22 +55,22 @@ class Ipup(UserPart):
         
         
     def AnswerCall(self):
-        with Logger(__name__ + '.AnswerCall'):
+        with Logger('Ipup::AnswerCall'):
             self._linphonec.stdin.write('answer\n')
         
         
     def SendDtmf(self, digit):
-        with Logger(__name__ + '.SendDtmf'):
+        with Logger('Ipup::SendDtmf'):
             self._linphonec.stdin.write(digit + '\n')
         
         
     def TerminateCall(self):
-        with Logger(__name__ + '.TerminateCall'):
+        with Logger('Ipup::TerminateCall'):
             self._linphonec.stdin.write('terminate\n')
 
 
     def _linphone_worker(self):        
-        with Logger(__name__ + '._linphone_worker') as log:
+        with Logger('Ipup::_linphone_worker') as log:
 
             register_command = "register %s %s %s\n" % (self._identity, self._proxy, self._password)
             self._linphonec.stdin.write(register_command)
@@ -99,7 +99,7 @@ class Ipup(UserPart):
 
 
 if __name__ == '__main__':
-    with Logger('ipup::__main__') as log:
+    with Logger('Ipup::__main__') as log:
         
         log.info('IP userpart for POTSBLIZ started ...')
 
