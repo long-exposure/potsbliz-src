@@ -5,12 +5,10 @@ import dbus
 import dbus.service
 import subprocess
 import time
-import potsbliz.config as config
 import potsbliz.speeddial as speeddial
 import potsbliz.tone_generator as tone_generator
 from enum import IntEnum
 from potsbliz.logger import Logger
-from potsbliz.up.ipup import Ipup
 from threading import Timer
 
 
@@ -36,30 +34,8 @@ class StateMachine(dbus.service.Object):
             self._state_event_log = Logger(__name__)
             self._set_state(State.IDLE)
 
-            #pub.subscribe(self.event_incoming_call, UserPart.TOPIC_INCOMING_CALL)
-            #pub.subscribe(self.event_terminate, UserPart.TOPIC_TERMINATE)
-            #pub.subscribe(self.event_busy, UserPart.TOPIC_BUSY)
-
-            '''
-            self._asterisk = Ipup(pub,
-                                  'sip:potsbliz@localhost:5065',
-                                  'sip:localhost:5065',
-                                  'potsbliz',
-                                  5061)
-            self._asterisk.start()
-            '''
-            self._asterisk = subprocess.Popen(['python', '-m', 'potsbliz.up.ipup',
-                                               'sip:potsbliz@localhost:5065',
-                                               'sip:localhost:5065',
-                                               'potsbliz',
-                                               '5061'])
-            
-            sip_account = config.list_sip_accounts()[0]
-            self._sip = subprocess.Popen(['python', '-m', 'potsbliz.up.ipup',
-                                          sip_account['identity'],
-                                          sip_account['proxy'],
-                                          sip_account['password'],
-                                          '5060'])
+            self._asterisk = subprocess.Popen(['python', '-m', 'potsbliz.up.ipup.asterisk'])
+            self._sip = subprocess.Popen(['python', '-m', 'potsbliz.up.ipup.sip'])
 
             # wait for linphone init
             # playing dailtone or starting pulseaudio during linphone startup breaks
@@ -67,18 +43,13 @@ class StateMachine(dbus.service.Object):
             # make test with simultanuous dialtone and ringing!!!
             time.sleep(3)
 
-            #self._btup = Btup(pub)
-            #self._btup.start()
-            self._btup = subprocess.Popen(['python', '-m', 'potsbliz.up.btup'])
+            self._btup = subprocess.Popen(['python', '-m', 'potsbliz.up.bluetooth'])
 
             tone_generator.play_ok_tone()
 
 
     def __exit__(self, type, value, traceback):
         with Logger(__name__ + '.__exit__'):
-            #self._sip.stop()
-            #self._asterisk.stop()
-            #self._btup.stop()
             self._sip.terminate()
             self._asterisk.terminate()
             self._btup.terminate()

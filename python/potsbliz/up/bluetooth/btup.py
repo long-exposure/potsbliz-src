@@ -16,12 +16,12 @@ class Btup(UserPart):
 
     def __init__(self):
         
-        with Logger('Btup::__init__') as log:
+        with Logger(__name__ + '.__init__') as log:
             super(Btup, self).__init__('net.longexposure.potsbliz.btup') # call base class constructor
 
 
     def __enter__(self):
-        with Logger('Btup::__enter__'):
+        with Logger(__name__ + '.__enter__'):
 
             self._bus = dbus.SystemBus()
             
@@ -48,7 +48,7 @@ class Btup(UserPart):
 
 
     def __exit__(self, type, value, traceback):
-        with Logger('Btup::__exit__'):
+        with Logger(__name__ + '.__exit__'):
             self._call_added_process.terminate()
             self._call_removed_process.terminate()
             self._pulseaudio_process.terminate()
@@ -58,7 +58,7 @@ class Btup(UserPart):
 
 
     def MakeCall(self, called_number):
-        with Logger('Btup::MakeCall') as log:
+        with Logger(__name__ + '.MakeCall') as log:
 
             ofono_manager = dbus.Interface(self._bus.get_object('org.ofono', '/'),
                                          'org.ofono.Manager')
@@ -80,7 +80,7 @@ class Btup(UserPart):
 
 
     def AnswerCall(self):
-        with Logger('Btup::AnswerCall') as log:
+        with Logger(__name__ + '.AnswerCall') as log:
             
             ofono_manager = dbus.Interface(self._bus.get_object('org.ofono', '/'),
                                            'org.ofono.Manager')
@@ -107,7 +107,7 @@ class Btup(UserPart):
 
 
     def SendDtmf(self, digit):
-        with Logger('Btup::SendDtmf') as log:
+        with Logger(__name__ + '.SendDtmf') as log:
 
             log.debug('Dbus: Get ofono manager')
             ofono_manager = dbus.Interface(self._bus.get_object('org.ofono', '/'),
@@ -138,7 +138,7 @@ class Btup(UserPart):
             
 
     def TerminateCall(self):
-        with Logger('Btup::TerminateCall') as log:
+        with Logger(__name__ + '.TerminateCall') as log:
             
             ofono_manager = dbus.Interface(self._bus.get_object('org.ofono', '/'),
                                            'org.ofono.Manager')
@@ -160,7 +160,7 @@ class Btup(UserPart):
 
 
     def _call_added_worker(self):        
-        with Logger('Btup::_call_added_worker') as log:
+        with Logger(__name__ + '._call_added_worker') as log:
             while True:
                 line = self._call_added_process.stdout.readline()
                 if (line == ''):
@@ -171,7 +171,7 @@ class Btup(UserPart):
 
 
     def _call_removed_worker(self):        
-        with Logger('Btup::_call_removed_worker') as log:
+        with Logger(__name__ + '._call_removed_worker') as log:
             while True:
                 line = self._call_removed_process.stdout.readline()
                 if (line == ''):
@@ -179,14 +179,3 @@ class Btup(UserPart):
                 if ('CallRemoved' in line):
                     log.debug('CallRemoved signal detected')
                     self.Release()
-
-
-if __name__ == '__main__':
-    with Logger('Btup::__main__') as log:
-        
-        log.info('Bluetooth userpart for POTSBLIZ started ...')
-
-        with Btup() as userpart:
-            userpart.run()
-        
-        log.info('Bluetooth userpart for POTSBLIZ terminated')
