@@ -16,7 +16,9 @@ if __name__ == '__main__':
         sip_account = config.list_sip_accounts()[0]
 
         with Ipup(sip_account['identity'], sip_account['proxy'],
-                  sip_account['password'], 5060) as userpart:
+                  sip_account['password'], 5060,
+                  '^[0-9][0-9#\*]+$'
+                 ) as userpart:
             userpart.run()
 
         log.info('SIP userpart for POTSBLIZ terminated')

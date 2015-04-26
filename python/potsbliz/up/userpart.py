@@ -42,6 +42,12 @@ class UserPart(dbus.service.Object):
 
     @dbus.service.method(dbus_interface='net.longexposure.potsbliz.userpart',
                          in_signature='s', out_signature='b')
+    def CanCall(self, called_number):
+        raise NotImplementedError(INHERITANCE_ERROR)
+
+
+    @dbus.service.method(dbus_interface='net.longexposure.potsbliz.userpart',
+                         in_signature='s', out_signature='')
     def MakeCall(self, called_number):
         raise NotImplementedError(INHERITANCE_ERROR)
 

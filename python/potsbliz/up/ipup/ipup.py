@@ -3,6 +3,7 @@
 
 # IPUP - IP User Part
 
+import re
 import sys
 from subprocess import Popen, PIPE
 from threading import Thread
@@ -12,7 +13,7 @@ from potsbliz.up.userpart import UserPart
 
 class Ipup(UserPart):
     
-    def __init__(self, identity, proxy, password, port=5060):
+    def __init__(self, identity, proxy, password, port=5060, call_pattern='.*'):
         
         with Logger(__name__ + '.__init__') as log:
             super(Ipup, self).__init__('net.longexposure.potsbliz.ipup.port' + str(port)) # call base class constructor
@@ -20,6 +21,7 @@ class Ipup(UserPart):
             self._proxy = proxy
             self._password = password
             self._port = port
+            self._call_pattern = call_pattern
             
         
     def __enter__(self):
@@ -46,12 +48,16 @@ class Ipup(UserPart):
             self._worker_thread.join()
 
     
+    def CanCall(self, called_number):
+        with Logger(__name__ + '.CanCall'):
+            return (re.match(self._call_pattern, called_number) != None)
+        
+        
     def MakeCall(self, called_number):
         with Logger(__name__ + '.MakeCall'):
             sip_provider = self._identity.split('@')[1]
             destination = 'sip:' + called_number + '@' + sip_provider
             self._linphonec.stdin.write('call ' + destination + '\n')
-            return True
         
         
     def AnswerCall(self):

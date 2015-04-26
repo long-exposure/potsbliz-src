@@ -101,14 +101,15 @@ class StateMachine(dbus.service.Object):
             if (sender != None):
                 log.debug('Registering ' + sender)
                 
-                # add sender to list of registered userparts            
-                self._userparts.append(sender)
-                bus = dbus.SystemBus()
-                userpart = dbus.Interface(bus.get_object(sender, '/Userpart'),
-                                                         'net.longexposure.potsbliz.userpart')
-                userpart.connect_to_signal('IncomingCall', self.event_incoming_call, sender_keyword='sender')
-                userpart.connect_to_signal('Release', self.event_release, sender_keyword='sender')
-                userpart.connect_to_signal('Busy', self.event_busy, sender_keyword='sender')
+                if (sender not in self._userparts):
+                    # add sender to list of registered userparts            
+                    self._userparts.append(sender)
+                    bus = dbus.SystemBus()
+                    userpart = dbus.Interface(bus.get_object(sender, '/Userpart'),
+                                                             'net.longexposure.potsbliz.userpart')
+                    userpart.connect_to_signal('IncomingCall', self.event_incoming_call, sender_keyword='sender')
+                    userpart.connect_to_signal('Release', self.event_release, sender_keyword='sender')
+                    userpart.connect_to_signal('Busy', self.event_busy, sender_keyword='sender')
 
                 log.debug('Registered userparts: ' + str(len(self._userparts)))
 
@@ -121,8 +122,9 @@ class StateMachine(dbus.service.Object):
             if (sender != None):
                 log.debug('Unregistering ' + sender)
                 
-                # remove sender to list of registered userparts            
-                self._userparts.remove(sender)
+                if (sender in self._userparts):
+                    # remove sender from list of registered userparts            
+                    self._userparts.remove(sender)
 
                 log.debug('Registered userparts: ' + str(len(self._userparts)))
 
@@ -197,33 +199,21 @@ class StateMachine(dbus.service.Object):
     def _end_of_dialing(self):
         with Logger(__name__ + '._end_of_dialing') as log:
             if (self._state == State.COLLECTING):
-                called_number = speeddial.convert(self._collected_digits)
-                log.info('Make call to: ' + called_number)
+                try:
+                    called_number = speeddial.convert(self._collected_digits)
+                    
+                    for registered_userpart in self._userparts:
+                        userpart = dbus.Interface(dbus.SystemBus().get_object(registered_userpart, '/Userpart'),
+                                                  'net.longexposure.potsbliz.userpart')
+                        if (userpart.CanCall(called_number)):
+                            self._up = userpart
+                            log.info('Make call to: %s' % called_number)
+                            userpart.MakeCall(called_number)
+                            self._set_state(State.TALK)
+                            return
+                        
+                    raise Exception('No userpart found for number ' + called_number)
                 
-                if (called_number == SETTINGS_EXTENSION):
-                    #self._up = self._asterisk
-                    #success = self._up.make_call('500')
-                    # TODO: find better routing strategy here!
-                    self._up = dbus.Interface(dbus.SystemBus().get_object(self._userparts[0], '/Userpart'),
-                                              'net.longexposure.potsbliz.userpart')
-                    success = self._up.MakeCall('500')
-                else:
-                    '''
-                    # first we try it via bluetooth
-                    self._up = self._btup
-                    success = self._up.make_call(called_number)
-                    if (success == False):
-                        # then we try sip
-                        self._up = self._sip
-                        success = self._up.make_call(called_number)
-                    '''
-                    # TODO: find better routing strategy here!
-                    self._up = dbus.Interface(dbus.SystemBus().get_object(self._userparts[1], '/Userpart'),
-                                              'net.longexposure.potsbliz.userpart')
-                    success = self._up.MakeCall(called_number)
-
-                if (success == True):
-                    self._set_state(State.TALK)
-                else:
+                except Exception:
                     tone_generator.start_dialtone()
                     self._set_state(State.OFFHOOK)

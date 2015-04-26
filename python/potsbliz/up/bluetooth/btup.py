@@ -5,6 +5,7 @@
 
 import dbus
 import subprocess
+import re
 import sys
 import time
 from threading import Thread
@@ -24,39 +25,39 @@ class Btup(UserPart):
         with Logger(__name__ + '.__enter__'):
 
             self._bus = dbus.SystemBus()
-            
-            # dbus-python offers signal handling, but the glib-mainloop stuff
-            #   seems not very thread-safe and crashes quite often
-            # => let's use dbus-monitor in seperate processes instead
-
-            self._call_added_process = subprocess.Popen(['dbus-monitor', '--system',
-                                                        "type='signal',sender='org.ofono',member='CallAdded'"],
-                                                        stdout=subprocess.PIPE)
-
-            self._call_removed_process = subprocess.Popen(['dbus-monitor', '--system',
-                                                          "type='signal',sender='org.ofono',member='CallRemoved'"],
-                                                          stdout=subprocess.PIPE)
 
             self._pulseaudio_process = subprocess.Popen(['/usr/local/bin/pulseaudio'])
 
-            Thread(target=self._call_added_worker).start()
-            Thread(target=self._call_removed_worker).start()
-            
-            self.register()
+            self._bus.add_signal_receiver(self._property_changed, 
+                                          bus_name="org.ofono", 
+                                          signal_name = "PropertyChanged", 
+                                          path_keyword="path", 
+                                          interface_keyword="interface")
+
+            self._bus.add_signal_receiver(self._call_added, 
+                                          bus_name="org.ofono", 
+                                          signal_name = "CallAdded")
+
+            self._bus.add_signal_receiver(self._call_removed, 
+                                          bus_name="org.ofono", 
+                                          signal_name = "CallRemoved")
+
+            self._update_registration()
             
             return self
 
 
     def __exit__(self, type, value, traceback):
         with Logger(__name__ + '.__exit__'):
-            self._call_added_process.terminate()
-            self._call_removed_process.terminate()
             self._pulseaudio_process.terminate()
-            self._call_added_process.wait()
-            self._call_removed_process.wait()
             self._pulseaudio_process.wait()
 
 
+    def CanCall(self, called_number):
+        with Logger(__name__ + '.CanCall'):
+            return (re.match('^[0-9][0-9#\*]+$', called_number) != None)
+
+    
     def MakeCall(self, called_number):
         with Logger(__name__ + '.MakeCall') as log:
 
@@ -74,9 +75,9 @@ class Btup(UserPart):
                                      'org.ofono.VoiceCallManager')
                 dial_path = vcm.Dial(called_number, 'default')
                 log.debug(dial_path)
-                return True
+                return
             
-            return False # no active modem found
+            raise Exception('No active modem found')
 
 
     def AnswerCall(self):
@@ -159,23 +160,42 @@ class Btup(UserPart):
                     call.Hangup()
 
 
-    def _call_added_worker(self):        
-        with Logger(__name__ + '._call_added_worker') as log:
-            while True:
-                line = self._call_added_process.stdout.readline()
-                if (line == ''):
-                    break
-                if ('\"incoming\"' in line):
-                    log.debug('CallAdded signal detected')
-                    self.IncomingCall()
+    def _update_registration(self):        
+        with Logger(__name__ + '._update_registration') as log:
+            
+            ofono_manager = dbus.Interface(self._bus.get_object('org.ofono', '/'),
+                                           'org.ofono.Manager')
+            modems = ofono_manager.GetModems()
+            for path, properties in modems:
+                if ('org.ofono.VoiceCallManager' not in properties['Interfaces']):
+                    continue                
+                if (properties['Online'] == False):
+                    continue
+                # at least one modem is online, ==> register
+                self.register()
+                return
+            
+            # no online modem found, ==> unregister
+            self.unregister()
 
 
-    def _call_removed_worker(self):        
-        with Logger(__name__ + '._call_removed_worker') as log:
-            while True:
-                line = self._call_removed_process.stdout.readline()
-                if (line == ''):
-                    break
-                if ('CallRemoved' in line):
-                    log.debug('CallRemoved signal detected')
-                    self.Release()
+    def _property_changed(self, name, value, path, interface): 
+        with Logger(__name__ + '._property_changed') as log:
+            log.debug("{%s} [%s] %s" % (interface, name, str(value),))
+            if ((interface == 'org.ofono.Modem') and (name == 'Online')):
+                if (value == 1):
+                    # if we invoke update_registration here, often no online modem is found!?!
+                    self.register()
+                else:
+                    self._update_registration()
+
+
+    def _call_added(self, name, value): 
+        with Logger(__name__ + '._call_added'):
+            if (value['State'] == 'incoming'):
+                self.IncomingCall()
+
+                
+    def _call_removed(self, name): 
+        with Logger(__name__ + '._call_removed'):
+            self.Release()
