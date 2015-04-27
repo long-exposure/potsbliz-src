@@ -3,11 +3,8 @@
 
 import dbus
 import dbus.service
-import gobject
 import RPi.GPIO as GPIO
-import signal
 import time
-from dbus.mainloop.glib import DBusGMainLoop
 from dbus.exceptions import DBusException
 from datetime import datetime
 from threading import Thread, Timer
@@ -36,7 +33,7 @@ class Anip(object):
     
 
     def __init__(self):
-        with Logger('Anip::__init__') as log:
+        with Logger(__name__ + '.__init__') as log:
             bus = dbus.SystemBus()
 
             # in case that POTSBLIZ is not yet ready to connect we are patient ... 
@@ -57,7 +54,7 @@ class Anip(object):
 
 
     def __enter__(self):
-        with Logger('Anip::__enter__'):
+        with Logger(__name__ + '.__enter__'):
             
             GPIO.setmode(GPIO.BOARD)
             GPIO.setup(GPIO_CHANNEL_HOOK, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -84,12 +81,12 @@ class Anip(object):
                 
 
     def __exit__(self, type, value, traceback):
-        with Logger('Anip::__exit__'):
+        with Logger(__name__ + '.__exit__'):
             self._stop_bell()
 
 
     def state_changed(self, state):
-        with Logger('Anip::state_changed'):
+        with Logger(__name__ + '.state_changed'):
             if (state == State.RINGING):
                 self._ring_bell()
             else:
@@ -97,7 +94,7 @@ class Anip(object):
     
     
     def _ring_bell(self):
-        with Logger('Anip::_ring_bell'):
+        with Logger(__name__ + '._ring_bell'):
             # no bell there, turn on leds if available 
             self._is_ringing = True
             self._worker_thread = Thread(target=self._ring_worker)
@@ -105,13 +102,13 @@ class Anip(object):
 
 
     def _stop_bell(self):
-        with Logger('Anip::_stop_bell'):
+        with Logger(__name__ + '._stop_bell'):
             # no bell there, turn off leds if available 
             self._is_ringing = False
 
 
     def _hook(self, channel):
-        with Logger('Anip::_hook'):
+        with Logger(__name__ + '._hook'):
             if (GPIO.input(channel) == 0):
                 self._offhook()
             else:    
@@ -127,7 +124,7 @@ class Anip(object):
 
 
     def _ground_key(self, channel):
-        with Logger('Anip::_ground_key') as log:
+        with Logger(__name__ + '._ground_key') as log:
 
             if (GPIO.input(channel) == 0):
                 log.debug('Ground key pressed.')
@@ -138,7 +135,7 @@ class Anip(object):
 
 
     def _onhook(self):
-        with Logger('Anip::_onhook') as log:
+        with Logger(__name__ + '._onhook') as log:
             self._hookflash_counter += 1
             self._rotation_timer.cancel()
             self._hookflash_down_timer.cancel()
@@ -148,7 +145,7 @@ class Anip(object):
 
 
     def _offhook(self):
-        with Logger('Anip::_offhook') as log:
+        with Logger(__name__ + '._offhook') as log:
             try:
                 if (self._hookflash_counter == 0):
                     self._state_machine.Offhook()
@@ -164,7 +161,7 @@ class Anip(object):
                 
     
     def _end_of_rotation(self):
-        with Logger('Anip::_end_of_rotation') as log:
+        with Logger(__name__ + '._end_of_rotation') as log:
             try:
                 if (self._pulse_counter == 10):
                     self._pulse_counter = 0 # 10 -> 0
@@ -177,7 +174,7 @@ class Anip(object):
 
 
     def _hookflash_down_timeout(self):
-        with Logger('Anip::_hookflash_down_timeout') as log:        
+        with Logger(__name__ + '._hookflash_down_timeout') as log:        
             try:
                 self._hookflash_up_timer.cancel()
                 self._hookflash_counter = 0
@@ -188,7 +185,7 @@ class Anip(object):
 
 
     def _hookflash_up_timeout(self):
-        with Logger('Anip::_hookflash_up_timeout') as log:        
+        with Logger(__name__ + '._hookflash_up_timeout') as log:        
             try:
                 log.debug(str(self._hookflash_counter) + ' hookflashs detected')
                 
@@ -205,7 +202,7 @@ class Anip(object):
 
 
     def _ring_worker(self):        
-        with Logger('Anip::_ring_worker') as log:
+        with Logger(__name__ + '._ring_worker') as log:
             while (self._is_ringing):
                 # toggle leds
                 GPIO.output(GPIO_CHANNEL_LED_1, True) 
@@ -214,21 +211,4 @@ class Anip(object):
                 GPIO.output(GPIO_CHANNEL_LED_1, False) 
                 GPIO.output(GPIO_CHANNEL_LED_2, True) 
                 time.sleep(0.25)
-            GPIO.output(GPIO_CHANNEL_LED_2, False) 
-
-
-if __name__ == '__main__':
-    with Logger('rotary::__main__') as log:
-        
-        log.info('Starting rotary dial plugin for POTSBLIZ ...')
-
-        DBusGMainLoop(set_as_default=True)
-    
-        loop = gobject.MainLoop()
-        gobject.threads_init()
-    
-        # register for SIGTERM
-        signal.signal(signal.SIGTERM, lambda signum, frame: loop.quit())
-    
-        with Anip():
-            loop.run()
+            GPIO.output(GPIO_CHANNEL_LED_2, False)

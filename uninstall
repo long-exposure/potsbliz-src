@@ -12,10 +12,11 @@ fi
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 
+# uninstall plugins
+$DIR/python/potsbliz/plugin/rotary/uninstall
+
 # stop and remove daemon
-/etc/init.d/pots-rotary stop
 /etc/init.d/potsbliz stop
-update-rc.d pots-rotary remove
 update-rc.d potsbliz remove
 
 

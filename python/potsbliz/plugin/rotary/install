@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# This script installs the POTSBLIZ rotary plugin
+
+echo "Installing POTSBLIZ rotary plugin ..."
+
+# determine script directory
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+
+# copy startup script
+cp -v $DIR/potsbliz-plugin-rotary /etc/init.d
+
+
+# create and start daemon
+update-rc.d potsbliz-plugin-rotary defaults
+/etc/init.d/potsbliz-plugin-rotary start
+
+
+echo "POTSBLIZ rotary plugin installed."

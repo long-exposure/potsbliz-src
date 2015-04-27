@@ -45,7 +45,6 @@ case "$1" in
     ;;
 
     status)
-    dpkg -s potsbliz-rpi | grep Version
     if [ -f $PIDFILE ]; then
 		echo '***********************'
 		echo '* POTSBLIZ is running *'

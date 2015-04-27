@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# This script removes the POTSBLIZ rotary plugin
+
+# stop and remove daemon
+/etc/init.d/potsbliz-plugin-rotary stop
+update-rc.d potsbliz-plugin-rotary remove

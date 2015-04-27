@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # ### BEGIN INIT INFO
-# Provides: pots-rotary
+# Provides: potsbliz-plugin-rotary
 # Required-Start: $remote_fs $syslog potsbliz
 # Required-Stop: $remote_fs $syslog potsbliz
 # Should-Start:
@@ -14,7 +14,7 @@
 
 DAEMON=/usr/bin/python
 ARGS="-m potsbliz.plugin.rotary"
-PIDFILE=/var/run/potsbliz-rotary.pid
+PIDFILE=/var/run/potsbliz-plugin-rotary.pid
 
 test -x $DAEMON || exit 0
 
@@ -22,33 +22,32 @@ case "$1" in
 
     start)
     
-    echo "Starting potsbliz-rotary"
+    echo "Starting potsbliz-plugin-rotary"
     start-stop-daemon --start --pidfile $PIDFILE --make-pidfile --background --exec $DAEMON -- $ARGS
     ;;
 
     stop)
-    echo "Shutting down potsbliz-rotary"
+    echo "Shutting down potsbliz-plugin-rotary"
     start-stop-daemon --stop --pidfile $PIDFILE --retry 10
     rm $PIDFILE
     ;;
 
     restart)
-    echo "Restarting potsbliz-rotary"
+    echo "Restarting potsbliz-plugin-rotary"
     start-stop-daemon --stop --pidfile $PIDFILE --retry 10
     rm $PIDFILE
     start-stop-daemon --start --pidfile $PIDFILE --make-pidfile --background --exec $DAEMON -- $ARGS
     ;;
 
     status)
-    dpkg -s potsbliz-rpi | grep Version
     if [ -f $PIDFILE ]; then
-		echo '******************************'
-		echo '* POTSBLIZ-ROTARY is running *'
-		echo '******************************'
+		echo '*************************************'
+		echo '* POTSBLIZ-PLUGIN-ROTARY is running *'
+		echo '*************************************'
 	else
-		echo '**********************************'
-		echo '* POTSBLIZ-ROTARY is NOT running *'
-		echo '**********************************'
+		echo '*****************************************'
+		echo '* POTSBLIZ-PLUGIN-ROTARY is NOT running *'
+		echo '*****************************************'
 	fi
     ;;
 
