@@ -20,5 +20,8 @@ sed -i '/jessie/Id' /etc/apt/sources.list
 # update package lists
 apt-get update
 
+# remove python scripts
+rm -R /usr/local/lib/python2.7/dist-packages/potsbliz/userpart/bluetooth
+
 # remove installed wheezy packages
 cat $DIR/package-list | xargs apt-get -y remove

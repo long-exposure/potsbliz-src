@@ -4,7 +4,7 @@
 # BTUP - Bluetooth User Part
 
 from potsbliz.logger import Logger
-from potsbliz.up.bluetooth.btup import Btup
+from potsbliz.userpart.bluetooth.btup import Btup
 
 
 if __name__ == '__main__':

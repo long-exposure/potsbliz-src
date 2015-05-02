@@ -13,13 +13,13 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 
 # uninstall userparts
-$DIR/python/potsbliz/up/bluetooth/uninstall
-$DIR/python/potsbliz/up/asterisk/uninstall
-$DIR/python/potsbliz/up/sip/uninstall
+$DIR/userpart/bluetooth/uninstall
+$DIR/userpart/asterisk/uninstall
+$DIR/userpart/sip/uninstall
 
 
 # uninstall plugins
-$DIR/python/potsbliz/plugin/rotary/uninstall
+$DIR/plugin/rotary/uninstall
 
 
 # stop and remove daemon
@@ -54,8 +54,10 @@ mv /etc/asterisk/extensions.conf /etc/asterisk/extensions_potsbliz.conf
 mv /etc/asterisk/sip.conf.orig /etc/asterisk/sip.conf
 mv /etc/asterisk/extensions.conf.orig /etc/asterisk/extensions.conf
 
+# remove dbus config
+rm /etc/dbus-1/system.d/potsbliz*
 
-# remove potsbliz
+# remove potsbliz python scripts
 rm -R /usr/local/lib/python2.7/dist-packages/potsbliz
 
 

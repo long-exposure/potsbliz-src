@@ -6,4 +6,7 @@
 /etc/init.d/potsbliz-userpart-asterisk stop
 update-rc.d potsbliz-userpart-asterisk remove
 
+# remove python scripts
+rm -R /usr/local/lib/python2.7/dist-packages/potsbliz/userpart/asterisk
+
 apt-get -y remove asterisk asterisk-prompt-de asterisk-prompt-fr-armelle

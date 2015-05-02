@@ -5,7 +5,7 @@
 
 import potsbliz.config as config
 from potsbliz.logger import Logger
-from potsbliz.up.sip.ipup import Ipup
+from potsbliz.userpart.sip.ipup import Ipup
 
 
 if __name__ == '__main__':

@@ -7,7 +7,16 @@ echo "Installing POTSBLIZ SIP userpart ..."
 # determine script directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+# install required packages
 apt-get -y install linphone
+
+# copy python scripts
+PYTHON_DIST_DIR=/usr/local/lib/python2.7/dist-packages
+mkdir -v -p $PYTHON_DIST_DIR/potsbliz/userpart/sip
+cp $DIR/*.py $PYTHON_DIST_DIR/potsbliz/userpart/sip
+
+# copy dbus config
+cp -v $DIR/dbus-1/potsbliz-userpart-sip.conf /etc/dbus-1/system.d
 
 # copy startup script
 cp -v $DIR/potsbliz-userpart-sip /etc/init.d

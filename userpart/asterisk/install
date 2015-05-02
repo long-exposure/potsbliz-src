@@ -13,6 +13,14 @@ echo "libvpb0 libvpb0/countrycode string 49" | debconf-set-selections
 # install asterisk
 apt-get -y install asterisk asterisk-prompt-de asterisk-prompt-fr-armelle
 
+# copy python scripts
+PYTHON_DIST_DIR=/usr/local/lib/python2.7/dist-packages
+mkdir -v -p $PYTHON_DIST_DIR/potsbliz/userpart/asterisk
+cp $DIR/*.py $PYTHON_DIST_DIR/potsbliz/userpart/asterisk
+
+# copy dbus config
+cp -v $DIR/dbus-1/potsbliz-userpart-asterisk.conf /etc/dbus-1/system.d
+
 # copy config files and agi scripts
 cp -v $DIR/config/sip.conf /etc/asterisk/sip_potsbliz.conf
 cp -v $DIR/config/extensions.conf /etc/asterisk/extensions_potsbliz.conf

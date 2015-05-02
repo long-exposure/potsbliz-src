@@ -5,3 +5,6 @@
 # stop and remove daemon
 /etc/init.d/potsbliz-plugin-rotary stop
 update-rc.d potsbliz-plugin-rotary remove
+
+# remove python scripts
+rm -R /usr/local/lib/python2.7/dist-packages/potsbliz/plugin/rotary

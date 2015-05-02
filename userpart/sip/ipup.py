@@ -8,7 +8,7 @@ import sys
 from subprocess import Popen, PIPE
 from threading import Thread
 from potsbliz.logger import Logger
-from potsbliz.up.userpart import UserPart
+from potsbliz.userpart.userpart import UserPart
 
 
 class Ipup(UserPart):

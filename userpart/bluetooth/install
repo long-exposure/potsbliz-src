@@ -12,6 +12,14 @@ cd $DIR
 echo "Install required debian packages ..."
 cat package-list | xargs apt-get -y install
 
+# copy python scripts
+PYTHON_DIST_DIR=/usr/local/lib/python2.7/dist-packages
+mkdir -v -p $PYTHON_DIST_DIR/potsbliz/userpart/bluetooth
+cp $DIR/*.py $PYTHON_DIST_DIR/potsbliz/userpart/bluetooth
+
+# copy dbus config
+cp -v $DIR/dbus-1/potsbliz-userpart-bluetooth.conf /etc/dbus-1/system.d
+
 # enhance apt source list for jessie
 echo "deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi" >> /etc/apt/sources.list
 

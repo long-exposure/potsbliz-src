@@ -35,12 +35,12 @@ PYTHON_DIST_DIR=/usr/local/lib/python2.7/dist-packages
 cd $DIR
 mkdir -v -p $PYTHON_DIST_DIR/potsbliz
 mkdir -v -p /var/www
-cp -r python/potsbliz $PYTHON_DIST_DIR
+cp -r core/potsbliz $PYTHON_DIST_DIR
 git describe > $PYTHON_DIST_DIR/potsbliz/potsbliz.version
 cp -v potsbliz /etc/init.d
-cp -v apache2/potsbliz /etc/apache2/sites-available
-cp -v -r apache2/www /var/www/potsbliz
-cp -v dbus-1/potsbliz.conf /etc/dbus-1/system.d
+cp -v core/apache2/potsbliz /etc/apache2/sites-available
+cp -v -r core/apache2/www /var/www/potsbliz
+cp -v core/dbus-1/potsbliz.conf /etc/dbus-1/system.d
 
 # enable local web server
 a2dissite default
@@ -106,12 +106,12 @@ update-rc.d potsbliz defaults
 /etc/init.d/potsbliz start
 
 # install plugins
-$DIR/python/potsbliz/plugin/rotary/install
+$DIR/plugin/rotary/install
 
 # install userparts
-$DIR/python/potsbliz/up/sip/install
-$DIR/python/potsbliz/up/asterisk/install
-$DIR/python/potsbliz/up/bluetooth/install
+$DIR/userpart/sip/install
+$DIR/userpart/asterisk/install
+$DIR/userpart/bluetooth/install
 
 # restore working directory 
 cd $CWD
