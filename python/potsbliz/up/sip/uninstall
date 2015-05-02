@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# This script removes the POTSBLIZ SIP userpart
+
+# stop and remove daemon
+/etc/init.d/potsbliz-userpart-sip stop
+update-rc.d potsbliz-userpart-sip remove
+
+apt-get -y remove linphone

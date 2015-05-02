@@ -1,0 +1,12 @@
+autoconf
+libtool
+intltool
+libsndfile1-dev
+libcap-dev
+libsystemd-daemon0
+libdbus-1-dev
+libspeex-dev
+libspeexdsp-dev
+libudev-dev
+libsbc-dev
+libbluetooth-dev

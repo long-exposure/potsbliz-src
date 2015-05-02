@@ -2,8 +2,8 @@
 
 # ### BEGIN INIT INFO
 # Provides: potsbliz
-# Required-Start: $remote_fs $syslog asterisk
-# Required-Stop: $remote_fs $syslog asterisk
+# Required-Start: $remote_fs $syslog
+# Required-Stop: $remote_fs $syslog
 # Should-Start:
 # Should-Stop:
 # Default-Start: 2 3 4 5

@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# This script installs the POTSBLIZ bluetooth userpart
+
+echo "Installing POTSBLIZ bluetooth userpart ..."
+
+# change into script directory
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+CWD=$(pwd)
+cd $DIR
+
+echo "Install required debian packages ..."
+cat package-list | xargs apt-get -y install
+
+# enhance apt source list for jessie
+echo "deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi" >> /etc/apt/sources.list
+
+# enable apt pinning
+echo "Package: *
+Pin: release a=stable
+Pin-Priority: 990
+
+Package: *
+Pin: release a=testing
+Pin-Priority: 100" > /etc/apt/preferences
+
+echo "Update package lists ..."
+apt-get update
+
+echo "Install required bluetooth software from debian jessie ..."
+apt-get -y -t jessie install bluez bluez-utils libasound2-dev ofono libjson-c-dev
+
+# set bluetooth adapter name
+sudo sed -i '/#Name/a Name = Potsbliz' /etc/bluetooth/main.conf
+
+# build and install pulseaudio
+if [ ! -e /usr/local/bin/pulseaudio ]
+then
+    echo "Download, build and install pulseaudio (this can take hours) ..."
+    cd $HOME
+	git clone git://anongit.freedesktop.org/pulseaudio/pulseaudio
+	cd pulseaudio
+	git checkout tags/v6.0
+	./autogen.sh
+	make
+	make install
+	ldconfig
+	cd ..
+fi
+
+# copy startup script
+cp -v $DIR/potsbliz-userpart-bluetooth /etc/init.d
+
+# create and start daemon
+update-rc.d potsbliz-userpart-bluetooth defaults
+/etc/init.d/potsbliz-userpart-bluetooth start
+
+# restore working directory 
+cd $CWD
+
+echo "POTSBLIZ bluetooth userpart installed."

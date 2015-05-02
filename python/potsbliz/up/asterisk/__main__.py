@@ -4,7 +4,7 @@
 # Asterisk IP User Part
 
 from potsbliz.logger import Logger
-from potsbliz.up.ipup.ipup import Ipup
+from potsbliz.up.sip.ipup import Ipup
 
 
 if __name__ == '__main__':

@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# This script installs the POTSBLIZ Asterisk userpart
+
+echo "Installing POTSBLIZ Asterisk userpart ..."
+
+# determine script directory
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# preconfigure packages
+echo "libvpb0 libvpb0/countrycode string 49" | debconf-set-selections
+
+# install asterisk
+apt-get -y install asterisk asterisk-prompt-de asterisk-prompt-fr-armelle
+
+# copy config files and agi scripts
+cp -v $DIR/config/sip.conf /etc/asterisk/sip_potsbliz.conf
+cp -v $DIR/config/extensions.conf /etc/asterisk/extensions_potsbliz.conf
+cp -v $DIR/agi/*.agi /usr/share/asterisk/agi-bin
+
+# patch installed asterisk PBX
+mv /etc/asterisk/sip.conf /etc/asterisk/sip.conf.orig
+mv /etc/asterisk/extensions.conf /etc/asterisk/extensions.conf.orig
+mv /etc/asterisk/sip_potsbliz.conf /etc/asterisk/sip.conf
+mv /etc/asterisk/extensions_potsbliz.conf /etc/asterisk/extensions.conf
+/etc/init.d/asterisk restart
+
+# copy startup script
+cp -v $DIR/potsbliz-userpart-asterisk /etc/init.d
+
+# create and start daemon
+update-rc.d potsbliz-userpart-asterisk defaults
+/etc/init.d/potsbliz-userpart-asterisk start
+
+echo "POTSBLIZ Asterisk userpart installed."

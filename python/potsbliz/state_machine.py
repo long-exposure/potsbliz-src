@@ -13,7 +13,7 @@ from threading import Timer
 
 
 EOD_TIMER = 5
-SETTINGS_EXTENSION = '#'
+#SETTINGS_EXTENSION = '#'
 State = IntEnum('State', 'IDLE RINGING TALK OFFHOOK COLLECTING BUSY')
 
 
@@ -34,14 +34,14 @@ class StateMachine(dbus.service.Object):
             self._state_event_log = Logger(__name__)
             self._set_state(State.IDLE)
 
-            self._asterisk = subprocess.Popen(['python', '-m', 'potsbliz.up.ipup.asterisk'])
-            self._sip = subprocess.Popen(['python', '-m', 'potsbliz.up.ipup.sip'])
+            #self._asterisk = subprocess.Popen(['python', '-m', 'potsbliz.up.ipup.asterisk'])
+            #self._sip = subprocess.Popen(['python', '-m', 'potsbliz.up.ipup.sip'])
 
             # wait for linphone init
             # playing dailtone or starting pulseaudio during linphone startup breaks
             #   soundcard setting for strange reasons!
             # make test with simultanuous dialtone and ringing!!!
-            time.sleep(3)
+            #time.sleep(3)
 
             self._btup = subprocess.Popen(['python', '-m', 'potsbliz.up.bluetooth'])
 
@@ -50,11 +50,11 @@ class StateMachine(dbus.service.Object):
 
     def __exit__(self, type, value, traceback):
         with Logger(__name__ + '.__exit__'):
-            self._sip.terminate()
-            self._asterisk.terminate()
+            #self._sip.terminate()
+            #self._asterisk.terminate()
             self._btup.terminate()
-            self._sip.wait()
-            self._asterisk.wait()
+            #self._sip.wait()
+            #self._asterisk.wait()
             self._btup.wait()
 
 

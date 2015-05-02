@@ -12,8 +12,15 @@ fi
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 
+# uninstall userparts
+$DIR/python/potsbliz/up/bluetooth/uninstall
+$DIR/python/potsbliz/up/asterisk/uninstall
+$DIR/python/potsbliz/up/sip/uninstall
+
+
 # uninstall plugins
 $DIR/python/potsbliz/plugin/rotary/uninstall
+
 
 # stop and remove daemon
 /etc/init.d/potsbliz stop
@@ -50,25 +57,6 @@ mv /etc/asterisk/extensions.conf.orig /etc/asterisk/extensions.conf
 
 # remove potsbliz
 rm -R /usr/local/lib/python2.7/dist-packages/potsbliz
-
-
-# this script does NOT remove the self-compiled pulseaudio software
-
-# remove bluetooth software
-apt-get -y remove bluez bluez-utils libasound2-dev ofono libjson-c-dev
-
-
-# remove apt pinning
-rm /etc/apt/preferences
-
-
-# restore apt source list
-sed -i '/potsbliz/Id' /etc/apt/sources.list
-sed -i '/jessie/Id' /etc/apt/sources.list
-
-
-# update package lists
-apt-get update
 
 
 # remove installed wheezy packages

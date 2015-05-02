@@ -6,15 +6,12 @@
 # timezone configured (via dpkg-reconfigure tzdata or raspi-config)
 # locales configured (via dpkg-reconfigure locales or raspi-config , e.g. de_DE.UTF-8)
 
-
 if [[ $EUID -ne 0 ]]; then
   echo "This install script requires root privileges"
   exit 1
 fi
 
-
 echo "Installing POTSBLIZ (Plain Old Telephone Service Beyond Local IP Stack) ..."
-
 
 # change into script directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -22,7 +19,6 @@ CWD=$(pwd)
 cd $DIR
 
 # preconfigure packages
-echo "libvpb0 libvpb0/countrycode string 49" | debconf-set-selections
 export MYSQL_ROOT_PASSWORD=potsbliz
 echo "mysql-server-5.5 mysql-server/root_password password ${MYSQL_ROOT_PASSWORD}
 mysql-server-5.5 mysql-server/root_password seen true
@@ -31,51 +27,8 @@ mysql-server-5.5 mysql-server/root_password_again seen true
 " | debconf-set-selections
 echo 'libc6 libraries/restart-without-asking boolean true' | sudo debconf-set-selections
 
-
 echo "Install required debian packages ..."
 cat package-list | xargs apt-get -y install
-
-
-# enhance apt source list for jessie
-echo "deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi" >> /etc/apt/sources.list
-
-# enable apt pinning
-echo "Package: *
-Pin: release a=stable
-Pin-Priority: 990
-
-Package: *
-Pin: release a=testing
-Pin-Priority: 100" > /etc/apt/preferences
-
-
-echo "Update package lists ..."
-apt-get update
-
-
-echo "Install required bluetooth software from debian jessie ..."
-apt-get -y -t jessie install bluez bluez-utils libasound2-dev ofono libjson-c-dev
-
-
-# set bluetooth adapter name
-sudo sed -i '/#Name/a Name = Potsbliz' /etc/bluetooth/main.conf
-
-
-# build and install pulseaudio
-if [ ! -e /usr/local/bin/pulseaudio ]
-then
-    echo "Download, build and install pulseaudio (this can take hours) ..."
-    cd $HOME
-	git clone git://anongit.freedesktop.org/pulseaudio/pulseaudio
-	cd pulseaudio
-	git checkout tags/v6.0
-	./autogen.sh
-	make
-	make install
-	ldconfig
-	cd ..
-fi
-
 
 # install potsbliz
 PYTHON_DIST_DIR=/usr/local/lib/python2.7/dist-packages
@@ -85,21 +38,9 @@ mkdir -v -p /var/www
 cp -r python/potsbliz $PYTHON_DIST_DIR
 git describe > $PYTHON_DIST_DIR/potsbliz/potsbliz.version
 cp -v potsbliz /etc/init.d
-cp -v asterisk/config/sip.conf /etc/asterisk/sip_potsbliz.conf
-cp -v asterisk/config/extensions.conf /etc/asterisk/extensions_potsbliz.conf
-cp -v asterisk/agi/*.agi /usr/share/asterisk/agi-bin
 cp -v apache2/potsbliz /etc/apache2/sites-available
 cp -v -r apache2/www /var/www/potsbliz
 cp -v dbus-1/potsbliz.conf /etc/dbus-1/system.d
-
-
-# patch installed asterisk PBX
-mv /etc/asterisk/sip.conf /etc/asterisk/sip.conf.orig
-mv /etc/asterisk/extensions.conf /etc/asterisk/extensions.conf.orig
-mv /etc/asterisk/sip_potsbliz.conf /etc/asterisk/sip.conf
-mv /etc/asterisk/extensions_potsbliz.conf /etc/asterisk/extensions.conf
-/etc/init.d/asterisk restart
-
 
 # enable local web server
 a2dissite default
@@ -107,12 +48,10 @@ a2ensite potsbliz
 a2enmod auth_mysql
 a2enmod python
 
- 
 # create javascript links
 ln -s /usr/share/javascript/jquery /var/www/potsbliz/jquery
 ln -s /usr/share/javascript/jquery-ui /var/www/potsbliz/jquery-ui
 ln -s /usr/share/javascript/jquery-ui-themes /var/www/potsbliz/jquery-ui-themes
-
 
 # download jtable javascript library
 cd /usr/share/javascript
@@ -120,7 +59,6 @@ git clone git://github.com/hikalkan/jtable.git
 cd jtable
 git checkout tags/v2.4.0
 ln -s /usr/share/javascript/jtable/lib /var/www/potsbliz/jtable
-
 
 # create mysql database and user
 echo "Creating potsbliz Mysql database ..."
@@ -159,24 +97,24 @@ CREATE TABLE IF NOT EXISTS mysql_auth (
 INSERT IGNORE INTO mysql_auth (username, passwd) VALUES ('admin', MD5('admin'));
 EOF
 
-
 # install required python packages
 pip install netifaces
 pip install enum34
-
 
 # create and start daemon
 update-rc.d potsbliz defaults
 /etc/init.d/potsbliz start
 
-
 # install plugins
 $DIR/python/potsbliz/plugin/rotary/install
 
+# install userparts
+$DIR/python/potsbliz/up/sip/install
+$DIR/python/potsbliz/up/asterisk/install
+$DIR/python/potsbliz/up/bluetooth/install
 
 # restore working directory 
 cd $CWD
-
 
 read -p "Reboot required. Reboot now (y/n)? " choice
 case "$choice" in 
