@@ -5,10 +5,10 @@
 # Abstract base class for concrete user parts
 
 import dbus
+import dbus.mainloop.glib
 import dbus.service
 import gobject
 import signal
-from dbus.mainloop.glib import DBusGMainLoop
 from potsbliz.logger import Logger
 
 INHERITANCE_ERROR = 'UserPart subclass implemented wrong! Subclasses have to implement this method!'
@@ -20,7 +20,7 @@ class UserPart(dbus.service.Object):
             
             self._service_name = service_name
             
-            DBusGMainLoop(set_as_default=True)
+            dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
             busName = dbus.service.BusName(service_name, bus = dbus.SystemBus())
             dbus.service.Object.__init__(self, busName, '/Userpart')
             
@@ -32,6 +32,7 @@ class UserPart(dbus.service.Object):
             
             loop = gobject.MainLoop()
             gobject.threads_init()
+            dbus.mainloop.glib.threads_init()
         
             # register for SIGTERM
             signal.signal(signal.SIGTERM, lambda signum, frame: loop.quit())

@@ -4,10 +4,10 @@
 # (C)2015  - Norbert Huffschmid - GNU GPL V3 
 
 import dbus
+import dbus.mainloop.glib
 import dbus.service
 import gobject
 import signal
-from dbus.mainloop.glib import DBusGMainLoop
 from potsbliz.logger import Logger
 from potsbliz.state_machine import StateMachine
 
@@ -18,11 +18,12 @@ class Potsbliz(object):
             
             log.info('Starting POTSBLIZ ...')
             
-            DBusGMainLoop(set_as_default=True)
+            dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
             with StateMachine():
 
                 self._loop = gobject.MainLoop()
                 gobject.threads_init()
+                dbus.mainloop.glib.threads_init()
 
                 # register for SIGTERM
                 signal.signal(signal.SIGTERM, lambda signum, frame: self._loop.quit())
