@@ -18,6 +18,10 @@ cp $DIR/*.py $PYTHON_DIST_DIR/potsbliz/userpart/sip
 # copy dbus config
 cp -v $DIR/dbus-1/potsbliz-userpart-sip.conf /etc/dbus-1/system.d
 
+# copy web interface
+mkdir -v -p /var/www/potsbliz/plugin/sip
+cp $DIR/www/* /var/www/potsbliz/plugin/sip
+
 # copy startup script
 cp -v $DIR/potsbliz-userpart-sip /etc/init.d
 

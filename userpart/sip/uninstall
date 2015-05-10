@@ -9,4 +9,7 @@ update-rc.d potsbliz-userpart-sip remove
 # remove python scripts
 rm -R /usr/local/lib/python2.7/dist-packages/potsbliz/userpart/sip
 
+#remove web interface
+rm -R /var/www/potsbliz/plugin/sip
+
 apt-get -y remove linphone

@@ -20,6 +20,10 @@ cp $DIR/*.py $PYTHON_DIST_DIR/potsbliz/userpart/bluetooth
 # copy dbus config
 cp -v $DIR/dbus-1/potsbliz-userpart-bluetooth.conf /etc/dbus-1/system.d
 
+# copy web interface
+mkdir -v -p /var/www/potsbliz/plugin/bluetooth
+cp $DIR/www/* /var/www/potsbliz/plugin/bluetooth
+
 # enhance apt source list for jessie
 echo "deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi" >> /etc/apt/sources.list
 

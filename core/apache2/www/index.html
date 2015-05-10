@@ -7,6 +7,8 @@
   <script src="/jquery-ui/jquery-ui.min.js"></script>
   <script src="/jtable/jquery.jtable.min.js" type="text/javascript"></script>
   <script src="/dialpad.js" type="text/javascript"></script>
+  <script src="/plugin/sip/sip.js" type="text/javascript"></script>
+  <script src="/plugin/bluetooth/bluetooth.js" type="text/javascript"></script>
   <link href="/dialpad.css" rel="stylesheet" type="text/css" />
   <link href="/jquery-ui-themes/sunny/jquery-ui.min.css" rel="stylesheet" type="text/css" />
   <link href="/jtable/themes/jqueryui/jtable_jqueryui.min.css" rel="stylesheet" type="text/css" />
@@ -15,29 +17,14 @@
 <div id="dialpad"></div>
 <div id="Tabs">
   <ul>
-    <li><a href="#tabs-1">Speed dial</a></li>
-    <li><a href="#tabs-2">Bluetooth</a></li>
-    <li><a href="#tabs-3">SIP account</a></li>
-    <li><a href="#tabs-4">Change password</a></li>
-    <li><a href="#tabs-5">About POTSBLIZ</a></li>
+    <li id='li-speeddial'><a href="#tabs-speeddial">Speed dial</a></li>
+    <li><a href="#tabs-password">Change password</a></li>
+    <li><a href="#tabs-about">About POTSBLIZ</a></li>
   </ul>
-  <div id="tabs-1">
+  <div id="tabs-speeddial">
     <div id="SpeedDialContainer"></div>
   </div>
-  <div id="tabs-2">
-    <div id="BluetoothContainer"></div>
-    <br />
-    <div>
-      <form id="discovery_form">
-        <input type="checkbox" id="DiscoveryCheckbox" name="discovery">
-        <label for="discovery" id="discovery_label">Search new devices</label>
-      </form>
-    </div>
-  </div>
-  <div id="tabs-3">
-    <div id="SipAccountContainer"></div>
-  </div>
-  <div id="tabs-4">
+  <div id="tabs-password">
 	<form name="password_form" action="">
 	  <fieldset>
 	  	<table>
@@ -65,7 +52,7 @@
 	  </fieldset>
 	</form>
   </div>
-  <div id="tabs-5">
+  <div id="tabs-about">
     <pre id="potsbliz_info" style="white-space: pre-wrap; white-space: -moz-pre-wrap; white-space: -pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word;  " />
   </div>
 </div>
@@ -108,111 +95,7 @@
             },
         });
         
-        $('#BluetoothContainer').jtable({
-            title: '&nbsp;',
-            jqueryuiTheme: true,
-            actions: {
-                listAction:   '/bluetooth.py/list',
-                deleteAction: '/bluetooth.py/delete'
-            },
-            fields: {
-                device: {
-                    key: true,
-                    list: false
-                },
-                name: {
-                    title: 'Device',
-		          	width: '99%',
-                },
-                paired: {
-		          	display: function (data) {
-		          		if (!data.record.paired) {
-		          			return '<input type="submit" onclick="pairDevice(\'' + data.record.device + '\');" value="Connect ..." />';
-		          		}
-                    }
-                },
-                connected: {
-		          	display: function (data) {
-		          		if (data.record.connected) {
-	                		return '<a href="javascript:;" title="Disconnect" onclick="disconnectDevice(\'' + data.record.device + '\');"><img src="/images/bluetooth-active.png" alt="Connected" width="12" height="16" /></a>';
-		          		}
-		          		else {
-	                		return '<a href="javascript:;" title="Try to Connect" onclick="connectDevice(\'' + data.record.device + '\');"><img src="/images/bluetooth-inactive.png" alt="Disconnected" width="12" height="16" /></a>';
-                        }
-                    }
-                },
-            }
-        });
-        
-        $('#SipAccountContainer').jtable({
-            jqueryuiTheme: true,
-            actions: {
-                listAction:   '/sip_account.py/list',
-                updateAction: '/sip_account.py/update'
-            },
-            fields: {
-                id: {
-                    key: true,
-                    list: false
-                },
-                identity: {
-                    title: 'Identity',
-                    width: '50%'
-                },
-                proxy: {
-                    title: 'Proxy',
-                    width: '50%'
-                },
-                password: {
-                    title: 'Password',
-                    list: false
-                },
-            },
- 	        rowUpdated: (function (event, data) {
-            	alert('Reboot required!');
-            }),
-        });
-
         $('#SpeedDialContainer').jtable('load');
-        $('#BluetoothContainer').jtable('load');
-        $('#SipAccountContainer').jtable('load');
-        
-        var discovery_timeout;         
-        $('#discovery_form :checkbox').change(function() {
-          if ($('#DiscoveryCheckbox').is(':checked')) {
-        	$.ajax( {
-  			  url: "/bluetooth.py/start_discovery",
-  			  success: function(info) {
-	        	$.ajax( {
-	  			  url: "/bluetooth.py/get_discoverable_timeout",
-				  dataType: "json",
-	  			  success: function(data) {
-	  			    // checking the Discovering flag always returns true
-	  			    // ==> uncheck checkbox after timeout
-					discovery_timeout = setTimeout(function() {
-						$('#DiscoveryCheckbox').prop('checked', false);
-					}, data.DiscoverableTimeout * 1000);
-				  }
-			    });
-    			alert('Make your Bluetooth device visible!');
-  			  },
-  			  error: function(info) {
-    			//alert('Discovery start failed!');
-    			$('#DiscoveryCheckbox').prop('checked', false);
-  			  },
-		    });
-          }
-          else {
-  			clearTimeout(discovery_timeout);
-        	$.ajax( {
-  			  url: "/bluetooth.py/stop_discovery",
-  			  // errors occur quite often: we silently ignore them here
-  			  //error: function(info) {
-    			//alert('Discovery stop failed!');
-  			  //},
-		    });
-          }    
-        });
         
         $('.ui-state-error').hide();
         $('#submit_result').hide();
@@ -271,74 +154,8 @@
   			}
 		});
 
-		// reload bluetooth info periodically if bluetooth tab is selected
-		setInterval(function() {
-			if ($('#Tabs').tabs('option', 'selected') == 1) {
-				// load list
-				$('#BluetoothContainer').jtable('load');
-			}
-		}, 3000);
-
-        // let label blink while discovery is active 
-        setInterval(function() {
-          var label = $('#discovery_label');
-          if ($('#DiscoveryCheckbox').is(':checked')) {
-            if (label.css('visibility') == 'hidden') {
-              label.css('visibility', 'visible');
-            }
-            else {
-              label.css('visibility', 'hidden');
-            }
-          }
-          else {
-            label.css('visibility', 'visible');          
-          }    
-        }, 500);
-
+		$('#Tabs').tabs('select', 0);
     });
-    
-    function pairDevice(device) {
-      	//alert('Trying to pair with ' + device);
-
-      	var dataString = 'device=' + device;
-	  	//alert (dataString);return false;
-		$.ajax({
-			type: "POST",
-			url: "/bluetooth.py/pair",
-			data: dataString,
-			dataType: "json",
-			success: function(response) {
-				alert('Pairing done.');
-			},
-			error: function (xhr, ajaxOptions, thrownError) {
-        				alert('Error: ' + xhr.status + ' - ' + thrownError);
-      		},
-		});
-    }
-    
-    function connectDevice(device) {
-		$.ajax({
-			type: "POST",
-			url: "/bluetooth.py/connect",
-			data: 'device=' + device,
-			dataType: "json",
-		    success: function(response) {
-		      if (response.Result != 'OK') {
-			      alert('Cannot establish bluetooth connection.');
-			      //alert(response.Message);
-		      }
-		    },
-		});
-    }
-    
-    function disconnectDevice(device) {
-		$.ajax({
-			type: "POST",
-			url: "/bluetooth.py/disconnect",
-			data: 'device=' + device,
-			dataType: "json",
-		});
-    }
     
 </script>
 
