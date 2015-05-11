@@ -2,11 +2,11 @@
 # (C)2015  - Norbert Huffschmid - GNU GPL V3 
 
 import dbus
+import dbus.mainloop.glib
 import dbus.service
 import gobject
 import json
 import re
-from dbus.mainloop.glib import DBusGMainLoop
 from potsbliz.state_machine import State as State
 
 
@@ -52,9 +52,10 @@ def longpoll_state(req):
     
     req.content_type = 'application/json; charset=UTF8'
 
-    DBusGMainLoop(set_as_default=True)
+    dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
     loop = gobject.MainLoop()
     gobject.threads_init()
+    dbus.mainloop.glib.threads_init()
 
     bus = dbus.SystemBus()
     state_machine = dbus.Interface(bus.get_object('net.longexposure.potsbliz', '/StateMachine'),
