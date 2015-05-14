@@ -3,6 +3,7 @@
 
 # Asterisk IP User Part
 
+from time import sleep
 from potsbliz.logger import Logger
 from potsbliz.userpart.sip.ipup import Ipup
 
@@ -16,6 +17,14 @@ if __name__ == '__main__':
                   'potsbliz', 5061,
                   '^#$' # Asterisk only deals with '#' (hookflash) number
                  ) as userpart:
+            
+            # wait for registration to be completed
+            while (not userpart.CanCall('#')):
+                sleep(1)
+            
+            # tell about IP address    
+            userpart.MakeCall('#')
+            
             userpart.run()
 
         log.info('Asterisk IP userpart for POTSBLIZ terminated')

@@ -50,7 +50,10 @@ class Ipup(UserPart):
     
     def CanCall(self, called_number):
         with Logger(__name__ + '.CanCall'):
-            return (re.match(self._call_pattern, called_number) != None)
+            if (self._is_registered):
+                return (re.match(self._call_pattern, called_number) != None)
+            else:
+                return False
         
         
     def MakeCall(self, called_number):

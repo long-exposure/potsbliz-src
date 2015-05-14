@@ -13,7 +13,6 @@ from threading import Timer
 
 
 EOD_TIMER = 5
-#SETTINGS_EXTENSION = '#'
 State = IntEnum('State', 'IDLE RINGING TALK OFFHOOK COLLECTING BUSY')
 
 
@@ -33,8 +32,6 @@ class StateMachine(dbus.service.Object):
         
             self._state_event_log = Logger(__name__)
             self._set_state(State.IDLE)
-
-            tone_generator.play_ok_tone()
 
 
     def __exit__(self, type, value, traceback):
