@@ -16,6 +16,9 @@ cp $DIR/*.py $PYTHON_DIST_DIR/potsbliz/plugin/rotary
 # copy startup script
 cp -v $DIR/potsbliz-plugin-rotary /etc/init.d
 
+# make script executable
+chmod +x /etc/init.d/potsbliz-plugin-rotary
+
 # create and start daemon
 update-rc.d potsbliz-plugin-rotary defaults
 /etc/init.d/potsbliz-plugin-rotary start

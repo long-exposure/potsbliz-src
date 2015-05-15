@@ -101,6 +101,13 @@ EOF
 pip install netifaces
 pip install enum34
 
+# make scripts executable
+chmod +x /etc/init.d/potsbliz
+chmod +x $DIR/plugin/rotary/*install
+chmod +x $DIR/userpart/sip/*install
+chmod +x $DIR/userpart/asterisk/*install
+chmod +x $DIR/userpart/bluetooth/*install
+
 # create and start daemon
 update-rc.d potsbliz defaults
 /etc/init.d/potsbliz start
