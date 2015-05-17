@@ -4,29 +4,6 @@
 import MySQLdb
 import MySQLdb.cursors
 
-def list_sip_accounts():
-    try:
-        with MySQLdb.connect(host="localhost", user="potsbliz",
-                             passwd="potsbliz", db="potsbliz",
-                             cursorclass=MySQLdb.cursors.DictCursor) as cursor:
-            cursor.execute("SELECT * FROM sip")
-            return cursor.fetchall()
-    except Exception, e:
-        raise Exception('Cannot read sip data: ' + str(e))
-
-
-def update_sip_account(id, identity, proxy, password):
-    try:
-        with MySQLdb.connect(host="localhost", user="potsbliz",
-                             passwd="potsbliz", db="potsbliz") as cursor:
-            cursor.execute("UPDATE sip SET identity = '" + identity +
-                           "', proxy = '" + proxy +
-                           "', password = '" + password +
-                           "' WHERE id = '" + id + "'")
-    except Exception, e:
-        raise Exception('Cannot update sip account: ' + str(e))
-
-
 def list_speeddial_numbers():
     try:
         with MySQLdb.connect(host="localhost", user="potsbliz",
@@ -71,18 +48,6 @@ def delete_speeddial_number(id):
             cursor.execute("DELETE FROM speeddial WHERE id = " + id)
     except Exception, e:
         raise Exception('Cannot delete speeddial number: ' + str(e))
-
-
-def list_sip_settings():
-    try:
-        with MySQLdb.connect(host="localhost", user="potsbliz",
-                             passwd="potsbliz", db="potsbliz",
-                             cursorclass=MySQLdb.cursors.DictCursor) as cursor:
-            # as long as config contains only SIP data we must not filter here
-            cursor.execute("SELECT config_key, config_value FROM config ORDER BY POSITION")
-            return cursor.fetchall()
-    except Exception, e:
-        raise Exception('Cannot read SIP settings: ' + str(e))
 
 
 def update_password(oldpw, newpw):

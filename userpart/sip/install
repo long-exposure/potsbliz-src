@@ -25,6 +25,18 @@ cp $DIR/www/* /var/www/potsbliz/plugin/sip
 # copy startup script
 cp -v $DIR/potsbliz-userpart-sip /etc/init.d
 
+# enhance database
+mysql -u potsbliz -ppotsbliz << EOF
+USE potsbliz;
+CREATE TABLE IF NOT EXISTS sip (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  identity VARCHAR(80),
+  proxy VARCHAR(80),
+  password VARCHAR(80)
+);
+INSERT IGNORE INTO sip VALUES ('1', 'sip:mySipId@mySipProvider.com', 'sip:mySipProxyProvider.com', 'mySecretPassword');
+EOF
+
 # make script executable
 chmod +x /etc/init.d/potsbliz-userpart-sip
 

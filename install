@@ -81,14 +81,6 @@ CREATE TABLE IF NOT EXISTS speeddial (
 );
 INSERT IGNORE INTO speeddial VALUES ('1', '21', '123456789', 'MyFirstSpeedDialNumber');
 
-CREATE TABLE IF NOT EXISTS sip (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  identity VARCHAR(80),
-  proxy VARCHAR(80),
-  password VARCHAR(80)
-);
-INSERT IGNORE INTO sip VALUES ('1', 'sip:mySipId@mySipProvider.com', 'sip:mySipProxyProvider.com', 'mySecretPassword');
-
 CREATE TABLE IF NOT EXISTS mysql_auth (
   username CHAR(25) NOT NULL,
   passwd CHAR(32),
