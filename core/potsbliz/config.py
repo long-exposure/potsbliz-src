@@ -60,3 +60,14 @@ def update_password(oldpw, newpw):
                  raise Exception('Old password is wrong!')
     except Exception, e:
         raise Exception('Cannot update password: ' + str(e))
+
+
+def list_sip_accounts():
+    try:
+        with MySQLdb.connect(host="localhost", user="potsbliz",
+                             passwd="potsbliz", db="potsbliz",
+                             cursorclass=MySQLdb.cursors.DictCursor) as cursor:
+            cursor.execute("SELECT * FROM sip")
+            return cursor.fetchall()
+    except Exception, e:
+        raise Exception('Cannot read sip data: ' + str(e))
