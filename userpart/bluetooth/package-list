@@ -10,3 +10,7 @@ libspeexdsp-dev
 libudev-dev
 libsbc-dev
 libbluetooth-dev
+bluez
+libasound2-dev
+ofono
+libjson-c-dev

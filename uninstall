@@ -42,11 +42,12 @@ rm -R /usr/share/javascript/jtable
 
 
 # restore original apache setup
-a2dissite potsbliz
-a2ensite default
-a2dismod auth_mysql
-a2dismod python
-
+a2dissite potsbliz.conf
+a2ensite 000-default.conf
+a2dismod dbd
+a2dismod authn_dbd
+a2disconf dbd_mysql
+service apache2 reload
 
 # restore original asterisk config
 mv /etc/asterisk/sip.conf /etc/asterisk/sip_potsbliz.conf

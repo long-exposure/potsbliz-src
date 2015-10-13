@@ -52,10 +52,12 @@ def delete_speeddial_number(id):
 
 def update_password(oldpw, newpw):
     try:
+        raise NotImplementedError('TODO: upgrade password check with bcrypt')
+    
         with MySQLdb.connect(host="localhost", user="potsbliz",
                              passwd="potsbliz", db="potsbliz") as cursor:
-            cursor.execute("UPDATE mysql_auth SET passwd = MD5('" + newpw +
-                           "') WHERE username = 'admin' AND passwd = MD5('" + oldpw + "')")
+            cursor.execute("UPDATE mysql_auth SET passwd = ENCRYPT('" + newpw +
+                           "') WHERE username = 'admin' AND passwd = ENCRYPT('" + oldpw + "')")
             if (cursor.rowcount != 1):
                  raise Exception('Old password is wrong!')
     except Exception, e:

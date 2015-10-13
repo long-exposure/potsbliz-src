@@ -38,15 +38,18 @@ mkdir -v -p /var/www
 cp -r core/potsbliz $PYTHON_DIST_DIR
 git describe > $PYTHON_DIST_DIR/potsbliz/potsbliz.version
 cp -v potsbliz /etc/init.d
-cp -v core/apache2/potsbliz /etc/apache2/sites-available
+cp -v core/apache2/potsbliz.conf /etc/apache2/sites-available
+cp -v core/apache2/dbd_mysql.conf /etc/apache2/conf-available
 cp -v -r core/apache2/www /var/www/potsbliz
 cp -v core/dbus-1/potsbliz.conf /etc/dbus-1/system.d
 
 # enable local web server
-a2dissite default
-a2ensite potsbliz
-a2enmod auth_mysql
-a2enmod python
+a2dissite 000-default.conf
+a2ensite potsbliz.conf
+a2enmod dbd
+a2enmod authn_dbd
+a2enconf dbd_mysql
+service apache2 reload
 
 # create javascript links
 ln -s /usr/share/javascript/jquery /var/www/potsbliz/jquery
@@ -86,7 +89,7 @@ CREATE TABLE IF NOT EXISTS mysql_auth (
   passwd CHAR(32),
   PRIMARY KEY (username)
 );
-INSERT IGNORE INTO mysql_auth (username, passwd) VALUES ('admin', MD5('admin'));
+INSERT IGNORE INTO mysql_auth (username, passwd) VALUES ('admin', ENCRYPT('admin'));
 EOF
 
 # install required python packages

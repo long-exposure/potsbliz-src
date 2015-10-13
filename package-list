@@ -1,6 +1,7 @@
 git
 apache2
-libapache2-mod-auth-mysql
+apache2-utils
+libaprutil1-dbd-mysql
 libapache2-mod-python
 mysql-server
 mysql-client

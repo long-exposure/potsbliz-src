@@ -8,18 +8,6 @@ update-rc.d potsbliz-userpart-bluetooth remove
 
 # this script does NOT remove the self-compiled pulseaudio software
 
-# remove bluetooth software
-apt-get -y remove bluez bluez-utils libasound2-dev ofono libjson-c-dev
-
-# remove apt pinning
-rm /etc/apt/preferences
-
-# restore apt source list
-sed -i '/jessie/Id' /etc/apt/sources.list
-
-# update package lists
-apt-get update
-
 # remove python scripts
 rm -R /usr/local/lib/python2.7/dist-packages/potsbliz/userpart/bluetooth
 

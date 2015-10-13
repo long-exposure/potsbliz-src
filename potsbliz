@@ -21,12 +21,7 @@ test -x $DAEMON || exit 0
 case "$1" in
 
     start)
-    
-    if [ ! -d /var/log/apache2 ]; then
-        mkdir /var/log/apache2
-        /etc/init.d/apache2 restart
-    fi
-    
+
     echo "Starting potsbliz"
     start-stop-daemon --start --pidfile $PIDFILE --make-pidfile --background --exec $DAEMON -- $ARGS
     ;;

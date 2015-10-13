@@ -24,24 +24,6 @@ cp -v $DIR/dbus-1/potsbliz-userpart-bluetooth.conf /etc/dbus-1/system.d
 mkdir -v -p /var/www/potsbliz/plugin/bluetooth
 cp $DIR/www/* /var/www/potsbliz/plugin/bluetooth
 
-# enhance apt source list for jessie
-echo "deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi" >> /etc/apt/sources.list
-
-# enable apt pinning
-echo "Package: *
-Pin: release a=stable
-Pin-Priority: 990
-
-Package: *
-Pin: release a=testing
-Pin-Priority: 100" > /etc/apt/preferences
-
-echo "Update package lists ..."
-apt-get update
-
-echo "Install required bluetooth software from debian jessie ..."
-apt-get -y -t jessie install bluez bluez-utils libasound2-dev ofono libjson-c-dev
-
 # set bluetooth adapter name
 sudo sed -i '/#Name/a Name = Potsbliz' /etc/bluetooth/main.conf
 
@@ -52,7 +34,7 @@ then
     cd $HOME
 	git clone git://anongit.freedesktop.org/pulseaudio/pulseaudio
 	cd pulseaudio
-	git checkout tags/v6.0
+	git checkout tags/v7.0
 	./autogen.sh
 	make
 	make install

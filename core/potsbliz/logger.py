@@ -26,7 +26,7 @@ class Logger(object):
             errorLogHandler.setFormatter(frm)
             self.__log.addHandler(errorLogHandler)
 
-        self.__log.setLevel(logging.INFO)
+        self.__log.setLevel(logging.DEBUG)
 
 
     def __enter__(self):
