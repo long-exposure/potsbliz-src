@@ -26,7 +26,7 @@ class Btup(UserPart):
 
             self._bus = dbus.SystemBus()
 
-            self._pulseaudio_process = subprocess.Popen(['/usr/local/bin/pulseaudio'])
+            subprocess.Popen(["pulseaudio", "-D"])
 
             self._bus.add_signal_receiver(self._property_changed, 
                                           bus_name="org.ofono", 
@@ -49,8 +49,7 @@ class Btup(UserPart):
 
     def __exit__(self, type, value, traceback):
         with Logger(__name__ + '.__exit__'):
-            self._pulseaudio_process.terminate()
-            self._pulseaudio_process.wait()
+            subprocess.Popen(["pulseaudio", "--kill"])
 
 
     def CanCall(self, called_number):

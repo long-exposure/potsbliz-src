@@ -39,6 +39,7 @@ then
 	make
 	make install
 	ldconfig
+	sed -i 's/module-bluetooth-discover$/module-bluetooth-discover headset=ofono/' /usr/local/etc/pulse/default.pa
 	cd ..
 fi
 
