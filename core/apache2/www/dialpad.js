@@ -31,8 +31,8 @@ $(function () {
 				},
 			});
             
-            // start long-polling for state changes
-            this._longpoll_state(this);
+            // start polling for state changes
+            this._update_state(this);
             
             
             // Event handlers:
@@ -54,13 +54,6 @@ $(function () {
             	// go offhook
     			$.ajax({
 					url: "/dialpad.py/offhook",
-					success: function(response) {
-						digits = $("#dp-display").val()
-						if (!self._offhook && (digits.length > 0)) {
- 							self._dialed_digits(digits);
-						}						
-						self._go_offhook(true);
-					},
 				});            		
 			});
             
@@ -106,18 +99,15 @@ $(function () {
         	}
         },
         
-        _longpoll_state: function (dialpad) {
+        _update_state: function (dialpad) {
 			$.ajax({
-				url: "dialpad.py/longpoll_state",
+				url: "dialpad.py/get_state",
 				dataType: "json",
 				success: function(data) {
-			    	dialpad._go_offhook((data.State != 'IDLE') && (data.State != 'RINGING'));
-			    	dialpad._longpoll_state(dialpad);
-				},
-				error: function(data) {
 			    	setTimeout(function() {
-			    		dialpad._longpoll_state(dialpad);
-			    	}, 2000); // TODO: clarify server sometimes returns 500 error
+    			    	dialpad._go_offhook((data.State != 'IDLE') && (data.State != 'RINGING'));
+			    		dialpad._update_state(dialpad);
+			    	}, 1000);
 				},
 			});
 		},
