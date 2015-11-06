@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <title>POTSBLIZ - Web Interface</title>
-  <script src="/jquery/jquery.js"></script>
-  <script src="/jquery-ui/jquery-ui.min.js"></script>
-  <script src="/jtable/jquery.jtable.min.js" type="text/javascript"></script>
+  <script src="/javascript/jquery/jquery.js"></script>
+  <script src="/javascript/jquery-ui/jquery-ui.min.js"></script>
+  <script src="/javascript/jtable/lib/jquery.jtable.min.js" type="text/javascript"></script>
   <script src="/dialpad.js" type="text/javascript"></script>
-  <script src="/plugin/sip/sip.js" type="text/javascript"></script>
-  <script src="/plugin/bluetooth/bluetooth.js" type="text/javascript"></script>
+  <script src="/userpart/sip/www/sip.js" type="text/javascript"></script>
+  <script src="/userpart/bluetooth/www/bluetooth.js" type="text/javascript"></script>
   <link href="/dialpad.css" rel="stylesheet" type="text/css" />
-  <link href="/jquery-ui-themes/sunny/jquery-ui.min.css" rel="stylesheet" type="text/css" />
-  <link href="/jtable/themes/jqueryui/jtable_jqueryui.min.css" rel="stylesheet" type="text/css" />
+  <link href="/javascript/jquery-ui-themes/sunny/jquery-ui.min.css" rel="stylesheet" type="text/css" />
+  <link href="/javascript/jtable/lib/themes/jqueryui/jtable_jqueryui.min.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
 <div id="dialpad"></div>
@@ -148,10 +148,9 @@
 
       	$.ajax({
   			url: "/info.py",
-  			dataType: 'text',
   			success: function(info) {
     			$("#potsbliz_info").text(info);
-  			}
+  			},
 		});
 
 		$('#Tabs').tabs('select', 0);

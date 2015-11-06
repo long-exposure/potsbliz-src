@@ -18,6 +18,9 @@ PIDFILE=/var/run/potsbliz-userpart-bluetooth.pid
 
 test -x $DAEMON || exit 0
 
+# set environment variables
+[ -f /etc/default/potsbliz ] && . /etc/default/potsbliz
+
 case "$1" in
 
     start)

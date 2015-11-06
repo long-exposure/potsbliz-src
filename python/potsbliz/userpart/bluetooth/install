@@ -12,17 +12,26 @@ cd $DIR
 echo "Install required debian packages ..."
 cat package-list | xargs apt-get -y install
 
-# copy python scripts
-PYTHON_DIST_DIR=/usr/local/lib/python2.7/dist-packages
-mkdir -v -p $PYTHON_DIST_DIR/potsbliz/userpart/bluetooth
-cp $DIR/*.py $PYTHON_DIST_DIR/potsbliz/userpart/bluetooth
+# create dbus config
+cat <<EOF > /etc/dbus-1/system.d/potsbliz-userpart-bluetooth.conf
+<!DOCTYPE busconfig PUBLIC "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
+<busconfig>
 
-# copy dbus config
-cp -v $DIR/dbus-1/potsbliz-userpart-bluetooth.conf /etc/dbus-1/system.d
+  <!-- ../system.conf have denied everything, so we just punch some holes -->
 
-# copy web interface
-mkdir -v -p /var/www/potsbliz/plugin/bluetooth
-cp $DIR/www/* /var/www/potsbliz/plugin/bluetooth
+  <policy user="root">
+    <allow own="net.longexposure.potsbliz.btup"/>
+    <allow send_destination="net.longexposure.potsbliz.btup"/>
+  </policy>
+
+  <policy user="www-data">
+    <allow send_destination="org.ofono"/>
+    <allow send_destination="org.bluez"/>
+  </policy>
+
+</busconfig>
+EOF
 
 # set bluetooth adapter name
 sudo sed -i '/#Name/a Name = Potsbliz' /etc/bluetooth/main.conf

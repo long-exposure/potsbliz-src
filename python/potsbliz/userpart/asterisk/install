@@ -13,13 +13,21 @@ echo "libvpb0 libvpb0/countrycode string 49" | debconf-set-selections
 # install asterisk
 apt-get -y install asterisk asterisk-prompt-de asterisk-prompt-fr-armelle
 
-# copy python scripts
-PYTHON_DIST_DIR=/usr/local/lib/python2.7/dist-packages
-mkdir -v -p $PYTHON_DIST_DIR/potsbliz/userpart/asterisk
-cp $DIR/*.py $PYTHON_DIST_DIR/potsbliz/userpart/asterisk
+# create dbus config
+cat <<EOF > /etc/dbus-1/system.d/potsbliz-userpart-asterisk.conf
+<!DOCTYPE busconfig PUBLIC "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
+<busconfig>
 
-# copy dbus config
-cp -v $DIR/dbus-1/potsbliz-userpart-asterisk.conf /etc/dbus-1/system.d
+  <!-- ../system.conf have denied everything, so we just punch some holes -->
+
+  <policy user="root">
+    <allow own="net.longexposure.potsbliz.ipup.port5061"/>
+    <allow send_destination="net.longexposure.potsbliz.ipup.port5061"/>
+  </policy>
+
+</busconfig>
+EOF
 
 # copy config files and agi scripts
 cp -v $DIR/config/sip.conf /etc/asterisk/sip_potsbliz.conf

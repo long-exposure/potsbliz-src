@@ -1,9 +1,7 @@
 # POTSBLIZ - Plain Old Telephone Service Beyond Local IP Stack
 # (C)2015  - Norbert Huffschmid - GNU GPL V3 
 
-import logging
 import logging.handlers
-import os
 
 
 class Logger(object):
@@ -19,7 +17,7 @@ class Logger(object):
             self.__log.addHandler(logHandler)
             
             #persistent error notebook
-            errorLogHandler = logging.FileHandler(os.path.dirname(os.path.realpath(__file__)) + '/error.log')
+            errorLogHandler = logging.FileHandler('/var/log/potsbliz-error.log')
             errorLogHandler.setLevel(logging.ERROR)
             frm = logging.Formatter("%(asctime)s %(levelname)s: %(message)s", 
                                     "%d.%m.%Y %H:%M:%S") 

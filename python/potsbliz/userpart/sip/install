@@ -10,17 +10,21 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # install required packages
 apt-get -y install linphone
 
-# copy python scripts
-PYTHON_DIST_DIR=/usr/local/lib/python2.7/dist-packages
-mkdir -v -p $PYTHON_DIST_DIR/potsbliz/userpart/sip
-cp $DIR/*.py $PYTHON_DIST_DIR/potsbliz/userpart/sip
+# create dbus config
+cat <<EOF > /etc/dbus-1/system.d/potsbliz-userpart-sip.conf
+<!DOCTYPE busconfig PUBLIC "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
+<busconfig>
 
-# copy dbus config
-cp -v $DIR/dbus-1/potsbliz-userpart-sip.conf /etc/dbus-1/system.d
+  <!-- ../system.conf have denied everything, so we just punch some holes -->
 
-# copy web interface
-mkdir -v -p /var/www/potsbliz/plugin/sip
-cp $DIR/www/* /var/www/potsbliz/plugin/sip
+  <policy user="root">
+    <allow own="net.longexposure.potsbliz.ipup.port5060"/>
+    <allow send_destination="net.longexposure.potsbliz.ipup.port5060"/>
+  </policy>
+
+</busconfig>
+EOF
 
 # copy startup script
 cp -v $DIR/potsbliz-userpart-sip /etc/init.d

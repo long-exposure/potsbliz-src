@@ -18,6 +18,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 CWD=$(pwd)
 cd $DIR
 
+
 # preconfigure packages
 export MYSQL_ROOT_PASSWORD=potsbliz
 echo "mysql-server-5.5 mysql-server/root_password password ${MYSQL_ROOT_PASSWORD}
@@ -27,41 +28,88 @@ mysql-server-5.5 mysql-server/root_password_again seen true
 " | debconf-set-selections
 echo 'libc6 libraries/restart-without-asking boolean true' | sudo debconf-set-selections
 
+
 echo "Install required debian packages ..."
 cat package-list | xargs apt-get -y install
 
-# install potsbliz
-PYTHON_DIST_DIR=/usr/local/lib/python2.7/dist-packages
-cd $DIR
-mkdir -v -p $PYTHON_DIST_DIR/potsbliz
-mkdir -v -p /var/www
-cp -r core/potsbliz $PYTHON_DIST_DIR
-git describe > $PYTHON_DIST_DIR/potsbliz/potsbliz.version
-cp -v potsbliz /etc/init.d
-cp -v core/apache2/potsbliz.conf /etc/apache2/sites-available
-cp -v core/apache2/dbd_mysql.conf /etc/apache2/conf-available
-cp -v -r core/apache2/www /var/www/potsbliz
-cp -v core/dbus-1/potsbliz.conf /etc/dbus-1/system.d
 
-# enable local web server
-a2dissite 000-default.conf
-a2ensite potsbliz.conf
-a2enmod dbd
-a2enmod authn_dbd
-a2enconf dbd_mysql
+# store version info
+git describe > /etc/potsbliz.version
+
+
+# create dbus config file
+cat <<EOF > /etc/dbus-1/system.d/potsbliz.conf
+<!DOCTYPE busconfig PUBLIC "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
+<busconfig>
+
+  <!-- ../system.conf have denied everything, so we just punch some holes -->
+
+  <policy user="root">
+    <allow own="net.longexposure.potsbliz"/>
+    <allow send_destination="net.longexposure.potsbliz"/>
+  </policy>
+
+  <policy user="www-data">
+    <allow send_destination="net.longexposure.potsbliz"/>
+  </policy>
+
+</busconfig>
+EOF
+
+
+# setup apache
+
+# setup site configuration file
+cat <<EOF > /etc/apache2/sites-available/potsbliz.conf
+<VirtualHost *:80>
+	ServerAdmin webmaster@localhost
+	DocumentRoot $DIR/apache2/www
+	Alias /userpart $DIR/python/potsbliz/userpart
+	<Directory $DIR>
+		Options Indexes FollowSymLinks MultiViews
+		AllowOverride AuthConfig
+		AuthName "Authentication required"
+		AuthType Basic
+		AuthBasicProvider dbd
+		AuthDBDUserPWQuery "SELECT passwd FROM mysql_auth WHERE username = %s"
+		Require valid-user
+		Require all granted
+		AddHandler mod_python .py
+		PythonHandler mod_python.publisher
+		PythonPath "sys.path+['$DIR/python']"
+	</Directory>
+	ErrorLog ${APACHE_LOG_DIR}/error.log
+	LogLevel warn
+	CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+EOF
+
+# setup dbd mysql configuration file
+cat <<EOF > /etc/apache2/conf-available/dbd_mysql.conf
+DBDriver mysql
+DBDParams "host=127.0.0.1 port=3306 user=potsbliz pass=potsbliz dbname=potsbliz"
+DBDMin  2
+DBDKeep 4
+DBDMax  10
+DBDExptime 300
+EOF
+
+# start local web server
+a2dissite -q 000-default.conf
+a2ensite -q potsbliz.conf
+a2enmod -q authn_dbd
+a2enmod -q dbd
+a2enconf -q dbd_mysql
 service apache2 reload
 
-# create javascript links
-ln -s /usr/share/javascript/jquery /var/www/potsbliz/jquery
-ln -s /usr/share/javascript/jquery-ui /var/www/potsbliz/jquery-ui
-ln -s /usr/share/javascript/jquery-ui-themes /var/www/potsbliz/jquery-ui-themes
 
 # download jtable javascript library
 cd /usr/share/javascript
 git clone git://github.com/hikalkan/jtable.git
 cd jtable
 git checkout tags/v2.4.0
-ln -s /usr/share/javascript/jtable/lib /var/www/potsbliz/jtable
+
 
 # create mysql database and user
 echo "Creating potsbliz Mysql database ..."
@@ -97,28 +145,33 @@ pip install netifaces
 pip install enum34
 
 # make scripts executable
-chmod +x /etc/init.d/potsbliz
-chmod +x $DIR/plugin/rotary/*install
-chmod +x $DIR/userpart/sip/*install
-chmod +x $DIR/userpart/asterisk/*install
-chmod +x $DIR/userpart/bluetooth/*install
+chmod +x $DIR/potsbliz
+chmod +x $DIR/python/potsbliz/plugin/rotary/*install
+chmod +x $DIR/python/potsbliz/userpart/sip/*install
+chmod +x $DIR/python/potsbliz/userpart/asterisk/*install
+chmod +x $DIR/python/potsbliz/userpart/bluetooth/*install
+
+# set pythonpath
+echo "PYTHONPATH=$DIR/python" >> /etc/environment
+echo "export PYTHONPATH=$DIR/python" > /etc/default/potsbliz
 
 # create and start daemon
+cp -v $DIR/potsbliz /etc/init.d
 update-rc.d potsbliz defaults
 /etc/init.d/potsbliz start
 
 # install plugins
-$DIR/plugin/rotary/install
+$DIR/python/potsbliz/plugin/rotary/install
 
 # install userparts
-$DIR/userpart/sip/install
-$DIR/userpart/asterisk/install
-$DIR/userpart/bluetooth/install
+$DIR/python/potsbliz/userpart/sip/install
+$DIR/python/potsbliz/userpart/asterisk/install
+$DIR/python/potsbliz/userpart/bluetooth/install
 
 # restore working directory 
 cd $CWD
 
-read -p "Reboot required. Reboot now (y/n)? " choice
+read -p "POTSBLIZ installed. Reboot required. Reboot now (y/n)? " choice
 case "$choice" in 
   y|Y ) reboot;;
   * ) echo "Remember to reboot before using POTSBLIZ!";;

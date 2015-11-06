@@ -7,8 +7,8 @@ $(document).ready(function () {
         title: '&nbsp;',
         jqueryuiTheme: true,
         actions: {
-            listAction:   '/plugin/bluetooth/bluetooth.py/list',
-            deleteAction: '/plugin/bluetooth/bluetooth.py/delete'
+            listAction:   '/userpart/bluetooth/www/bluetooth.py/list',
+            deleteAction: '/userpart/bluetooth/www/bluetooth.py/delete'
         },
         fields: {
             device: {
@@ -29,10 +29,10 @@ $(document).ready(function () {
             connected: {
 	          	display: function (data) {
 	          		if (data.record.connected) {
-                		return '<a href="javascript:;" title="Disconnect" onclick="disconnectDevice(\'' + data.record.device + '\');"><img src="/images/bluetooth-active.png" alt="Connected" width="12" height="16" /></a>';
+                		return '<a href="javascript:;" title="Disconnect" onclick="disconnectDevice(\'' + data.record.device + '\');"><img src="/userpart/bluetooth/www/bluetooth-active.png" alt="Connected" width="12" height="16" /></a>';
 	          		}
 	          		else {
-                		return '<a href="javascript:;" title="Try to Connect" onclick="connectDevice(\'' + data.record.device + '\');"><img src="/images/bluetooth-inactive.png" alt="Disconnected" width="12" height="16" /></a>';
+                		return '<a href="javascript:;" title="Try to Connect" onclick="connectDevice(\'' + data.record.device + '\');"><img src="/userpart/bluetooth/www/bluetooth-inactive.png" alt="Disconnected" width="12" height="16" /></a>';
                     }
                 }
             },
@@ -45,10 +45,10 @@ $(document).ready(function () {
     $('#discovery_form :checkbox').change(function() {
       if ($('#DiscoveryCheckbox').is(':checked')) {
     	$.ajax( {
-		  url: "/plugin/bluetooth/bluetooth.py/start_discovery",
+		  url: "/userpart/bluetooth/www/bluetooth.py/start_discovery",
 		  success: function(info) {
         	$.ajax( {
-  			  url: "/plugin/bluetooth/bluetooth.py/get_discoverable_timeout",
+  			  url: "/userpart/bluetooth/www/bluetooth.py/get_discoverable_timeout",
 			  dataType: "json",
   			  success: function(data) {
   			    // checking the Discovering flag always returns true
@@ -69,7 +69,7 @@ $(document).ready(function () {
       else {
 		clearTimeout(discovery_timeout);
     	$.ajax( {
-		  url: "/plugin/bluetooth/bluetooth.py/stop_discovery",
+		  url: "/userpart/bluetooth/www/bluetooth.py/stop_discovery",
 		  // errors occur quite often: we silently ignore them here
 		  //error: function(info) {
 			//alert('Discovery stop failed!');
@@ -110,7 +110,7 @@ function pairDevice(device) {
   	//alert (dataString);return false;
 	$.ajax({
 		type: "POST",
-		url: "/plugin/bluetooth/bluetooth.py/pair",
+		url: "/userpart/bluetooth/www/bluetooth.py/pair",
 		data: dataString,
 		dataType: "json",
 		success: function(response) {
@@ -125,7 +125,7 @@ function pairDevice(device) {
 function connectDevice(device) {
 	$.ajax({
 		type: "POST",
-		url: "/plugin/bluetooth/bluetooth.py/connect",
+		url: "/userpart/bluetooth/www/bluetooth.py/connect",
 		data: 'device=' + device,
 		dataType: "json",
 	    success: function(response) {
@@ -140,9 +140,8 @@ function connectDevice(device) {
 function disconnectDevice(device) {
 	$.ajax({
 		type: "POST",
-		url: "/plugin/bluetooth/bluetooth.py/disconnect",
+		url: "/userpart/bluetooth/www/bluetooth.py/disconnect",
 		data: 'device=' + device,
 		dataType: "json",
 	});
 }
-    

@@ -6,8 +6,8 @@ $(document).ready(function () {
     $('#SipAccountContainer').jtable({
         jqueryuiTheme: true,
         actions: {
-            listAction:   '/plugin/sip/sip_account.py/list',
-            updateAction: '/plugin/sip/sip_account.py/update'
+            listAction:   '/userpart/sip/www/sip_account.py/list',
+            updateAction: '/userpart/sip/www/sip_account.py/update'
         },
         fields: {
             id: {

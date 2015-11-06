@@ -6,7 +6,14 @@
 /etc/init.d/potsbliz-userpart-asterisk stop
 update-rc.d potsbliz-userpart-asterisk remove
 
-# remove python scripts
-rm -R /usr/local/lib/python2.7/dist-packages/potsbliz/userpart/asterisk
+# TODO: move this to asterisk uninstaller!
+# restore original asterisk config
+mv /etc/asterisk/sip.conf /etc/asterisk/sip_potsbliz.conf
+mv /etc/asterisk/extensions.conf /etc/asterisk/extensions_potsbliz.conf
+mv /etc/asterisk/sip.conf.orig /etc/asterisk/sip.conf
+mv /etc/asterisk/extensions.conf.orig /etc/asterisk/extensions.conf
+
+# remove dbus config
+rm -v /etc/dbus-1/system.d/potsbliz-userpart-asterisk.conf
 
 apt-get -y remove asterisk asterisk-prompt-de asterisk-prompt-fr-armelle

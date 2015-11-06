@@ -167,8 +167,7 @@ class StateMachine(dbus.service.Object):
 
     @dbus.service.method(dbus_interface='net.longexposure.potsbliz.statemachine', in_signature='', out_signature='i')
     def GetState(self):
-        with Logger(__name__ + '.GetState'):
-            return self._state
+        return self._state
 
 
     @dbus.service.signal(dbus_interface='net.longexposure.potsbliz.statemachine', signature='i')

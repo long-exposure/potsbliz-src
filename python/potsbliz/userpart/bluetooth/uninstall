@@ -8,11 +8,8 @@ update-rc.d potsbliz-userpart-bluetooth remove
 
 # this script does NOT remove the self-compiled pulseaudio software
 
-# remove python scripts
-rm -R /usr/local/lib/python2.7/dist-packages/potsbliz/userpart/bluetooth
-
-#remove web interface
-rm -R /var/www/potsbliz/plugin/bluetooth
+# remove dbus config
+rm -v /etc/dbus-1/system.d/potsbliz-userpart-bluetooth.conf
 
 # remove installed wheezy packages
 cat $DIR/package-list | xargs apt-get -y remove
