@@ -151,9 +151,8 @@ chmod +x $DIR/python/potsbliz/userpart/sip/*install
 chmod +x $DIR/python/potsbliz/userpart/asterisk/*install
 chmod +x $DIR/python/potsbliz/userpart/bluetooth/*install
 
-# set pythonpath
-echo "PYTHONPATH=$DIR/python" >> /etc/environment
-echo "export PYTHONPATH=$DIR/python" > /etc/default/potsbliz
+# integrate in pythonpath
+ln -s $DIR/python/potsbliz /usr/local/lib/python2.7/dist-packages/potsbliz
 
 # create and start daemon
 cp -v $DIR/potsbliz /etc/init.d

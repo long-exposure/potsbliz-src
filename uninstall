@@ -28,9 +28,9 @@ update-rc.d potsbliz remove
 rm -v /etc/init.d/potsbliz
 
 
-# remove PYTHONPATH environment variable
-sed -i '/^PYTHONPATH/d' /etc/environment
-rm -v /etc/default/potsbliz
+# cleanup PYTHONPATH
+rm -v /usr/local/lib/python2.7/dist-packages/potsbliz
+
 
 # drop potsbliz database
 mysql -u root -ppotsbliz << EOF
