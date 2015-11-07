@@ -80,7 +80,7 @@ $(document).ready(function () {
     
 	// reload bluetooth info periodically if bluetooth tab is selected
 	setInterval(function() {
-		if ($('#Tabs').tabs('option', 'selected') == 1) {
+		if ($('#tabs-bluetooth').is(":visible")) {
 			// load list
 			$('#BluetoothContainer').jtable('load');
 		}
