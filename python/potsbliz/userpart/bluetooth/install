@@ -33,9 +33,6 @@ cat <<EOF > /etc/dbus-1/system.d/potsbliz-userpart-bluetooth.conf
 </busconfig>
 EOF
 
-# set bluetooth adapter name
-sudo sed -i '/#Name/a Name = Potsbliz' /etc/bluetooth/main.conf
-
 # build and install pulseaudio
 if [ ! -e /usr/local/bin/pulseaudio ]
 then

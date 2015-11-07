@@ -59,6 +59,10 @@ rm -v /etc/apache2/sites-available/potsbliz.conf
 rm -v /etc/dbus-1/system.d/potsbliz.conf
 
 
+# restore hostname
+mv /etc/hostname.orig /etc/hostname
+
+
 # remove version info
 rm -v /etc/potsbliz.version
 

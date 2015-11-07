@@ -37,6 +37,11 @@ cat package-list | xargs apt-get -y install
 git describe > /etc/potsbliz.version
 
 
+# set hostname (useful at least for bluetooth pairing and maybe other things)
+mv /etc/hostname /etc/hostname.orig 
+echo 'POTSBLIZ' > /etc/hostname
+
+
 # create dbus config file
 cat <<EOF > /etc/dbus-1/system.d/potsbliz.conf
 <!DOCTYPE busconfig PUBLIC "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
