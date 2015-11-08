@@ -76,7 +76,7 @@ cat <<EOF > /etc/apache2/sites-available/potsbliz.conf
 	<Directory $DIR>
 		Options Indexes FollowSymLinks MultiViews
 		AllowOverride AuthConfig
-		AuthName "Authentication required"
+		AuthName "POTSBLIZ"
 		AuthType Basic
 		AuthBasicProvider external
 		AuthExternal pwauth
