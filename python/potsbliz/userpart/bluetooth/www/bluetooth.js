@@ -29,10 +29,32 @@ $(document).ready(function () {
             connected: {
 	          	display: function (data) {
 	          		if (data.record.connected) {
-                		return '<a href="javascript:;" title="Disconnect" onclick="disconnectDevice(\'' + data.record.device + '\');"><img src="/userpart/bluetooth/www/bluetooth-active.png" alt="Connected" width="12" height="16" /></a>';
+                		return '<a href="javascript:;" title="Disconnect" onclick="disconnectDevice(\'' + data.record.device + '\');"><img src="/userpart/bluetooth/www/images/bluetooth-active.png" alt="Connected" width="12" height="16" /></a>';
 	          		}
 	          		else {
-                		return '<a href="javascript:;" title="Try to Connect" onclick="connectDevice(\'' + data.record.device + '\');"><img src="/userpart/bluetooth/www/bluetooth-inactive.png" alt="Disconnected" width="12" height="16" /></a>';
+                		return '<a href="javascript:;" title="Try to Connect" onclick="connectDevice(\'' + data.record.device + '\');"><img src="/userpart/bluetooth/www/images/bluetooth-inactive.png" alt="Disconnected" width="12" height="16" /></a>';
+                    }
+                }
+            },
+            strength: {
+	          	display: function (data) {
+	          		if (data.record.strength > 80) {
+                		return '<img src="/userpart/bluetooth/www/images/strength_100.png" width="32" height="16" />';
+	          		}
+	          		else if (data.record.strength > 60) {
+                		return '<img src="/userpart/bluetooth/www/images/strength_80.png" width="32" height="16" />';
+	          		}
+	          		else if (data.record.strength > 40) {
+                		return '<img src="/userpart/bluetooth/www/images/strength_60.png" width="32" height="16" />';
+	          		}
+	          		else if (data.record.strength > 20) {
+                		return '<img src="/userpart/bluetooth/www/images/strength_40.png" width="32" height="16" />';
+	          		}
+	          		else if (data.record.strength > 0) {
+                		return '<img src="/userpart/bluetooth/www/images/strength_20.png" width="32" height="16" />';
+	          		}
+	          		else {
+                		return '<img src="/userpart/bluetooth/www/images/strength_0.png" width="32" height="16" />';
                     }
                 }
             },

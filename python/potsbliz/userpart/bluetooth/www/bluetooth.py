@@ -6,23 +6,43 @@ import json
 from mod_python import apache
 
 def list(req):
+    
     req.content_type = 'application/json; charset=UTF8'
 
-    rows = []
-    bus = dbus.SystemBus()
-    manager = dbus.Interface(bus.get_object('org.bluez', '/'), 'org.freedesktop.DBus.ObjectManager')
-    objects = manager.GetManagedObjects()
-    for path in objects.keys():
-        interfaces = objects[path]
-        for interface in interfaces.keys():
-            if (interface == 'org.bluez.Device1'):
-                properties = interfaces[interface]
-                rows.append({ 'device': path,
-                              'name': properties['Name'],
-                              'connected': properties['Connected'],
-                              'paired': properties['Paired'] })
+    try:
+        
+        rows = []
+        bus = dbus.SystemBus()
 
-    return json.dumps({ 'Result': 'OK', 'Records': rows })
+        ofono_manager = dbus.Interface(bus.get_object('org.ofono', '/'), 'org.ofono.Manager')
+        modems = ofono_manager.GetModems()
+        strength = 0
+        for path, properties in modems:
+            if ('org.ofono.NetworkRegistration' not in properties['Interfaces']):
+                continue                
+            if (properties['Online'] == False):
+                continue
+            nr = dbus.Interface(bus.get_object('org.ofono', path), 'org.ofono.NetworkRegistration')
+            #nr_properties = nr.GetProperties()
+            strength = nr.GetProperties()['Strength']
+
+        manager = dbus.Interface(bus.get_object('org.bluez', '/'), 'org.freedesktop.DBus.ObjectManager')
+        objects = manager.GetManagedObjects()
+        for path in objects.keys():
+            interfaces = objects[path]
+            for interface in interfaces.keys():
+                if (interface == 'org.bluez.Device1'):
+                    properties = interfaces[interface]
+                    rows.append({ 'device': path,
+                                  'name': properties['Name'],
+                                  'connected': properties['Connected'],
+                                  'paired': properties['Paired'],
+                                  'strength': int(strength) })
+    
+        return json.dumps({ 'Result': 'OK', 'Records': rows })
+    
+    except Exception, e:
+        return json.dumps({ 'Result': 'Error', 'Message': str(e) })
 
 
 def delete(req):
