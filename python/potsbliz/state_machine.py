@@ -183,6 +183,7 @@ class StateMachine(dbus.service.Object):
                     called_number = speeddial.convert(self._collected_digits)
                     
                     for registered_userpart in self._userparts:
+                        log.info('Check if userpart can make call to: %s' % called_number)
                         userpart = dbus.Interface(dbus.SystemBus().get_object(registered_userpart, '/Userpart'),
                                                   'net.longexposure.potsbliz.userpart')
                         if (userpart.CanCall(called_number)):

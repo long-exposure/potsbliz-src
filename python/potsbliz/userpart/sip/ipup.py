@@ -46,6 +46,7 @@ class Ipup(UserPart):
         with Logger(__name__ + '.__exit__'):
             self._linphonec.stdin.write("quit\n")
             self._worker_thread.join()
+            self.unregister()
 
     
     def CanCall(self, called_number):

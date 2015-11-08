@@ -50,6 +50,7 @@ class Btup(UserPart):
     def __exit__(self, type, value, traceback):
         with Logger(__name__ + '.__exit__'):
             subprocess.Popen(["pulseaudio", "--kill"])
+            self.unregister()
 
 
     def CanCall(self, called_number):
