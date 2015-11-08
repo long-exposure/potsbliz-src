@@ -50,20 +50,6 @@ def delete_speeddial_number(id):
         raise Exception('Cannot delete speeddial number: ' + str(e))
 
 
-def update_password(oldpw, newpw):
-    try:
-        raise NotImplementedError('TODO: upgrade password check with bcrypt')
-    
-        with MySQLdb.connect(host="localhost", user="potsbliz",
-                             passwd="potsbliz", db="potsbliz") as cursor:
-            cursor.execute("UPDATE mysql_auth SET passwd = ENCRYPT('" + newpw +
-                           "') WHERE username = 'admin' AND passwd = ENCRYPT('" + oldpw + "')")
-            if (cursor.rowcount != 1):
-                 raise Exception('Old password is wrong!')
-    except Exception, e:
-        raise Exception('Cannot update password: ' + str(e))
-
-
 def list_sip_accounts():
     try:
         with MySQLdb.connect(host="localhost", user="potsbliz",

@@ -3,6 +3,8 @@ apache2
 apache2-utils
 libaprutil1-dbd-mysql
 libapache2-mod-python
+libapache2-mod-authnz-external
+pwauth
 mysql-server
 mysql-client
 libjs-jquery

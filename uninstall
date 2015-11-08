@@ -45,7 +45,6 @@ rm -R /usr/share/javascript/jtable
 # restore original apache setup
 a2dissite -q potsbliz.conf
 a2ensite -q 000-default.conf
-a2dismod -q authn_dbd
 a2dismod -q dbd
 a2disconf -q dbd_mysql
 service apache2 reload

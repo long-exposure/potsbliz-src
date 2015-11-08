@@ -71,18 +71,18 @@ cat <<EOF > /etc/apache2/sites-available/potsbliz.conf
 	ServerAdmin webmaster@localhost
 	DocumentRoot $DIR/apache2/www
 	Alias /userpart $DIR/python/potsbliz/userpart
+	AddExternalAuth pwauth /usr/sbin/pwauth
+	SetExternalAuthMethod pwauth pipe
 	<Directory $DIR>
 		Options Indexes FollowSymLinks MultiViews
 		AllowOverride AuthConfig
 		AuthName "Authentication required"
 		AuthType Basic
-		AuthBasicProvider dbd
-		AuthDBDUserPWQuery "SELECT passwd FROM mysql_auth WHERE username = %s"
+		AuthBasicProvider external
+		AuthExternal pwauth
 		Require valid-user
-		Require all granted
 		AddHandler mod_python .py
 		PythonHandler mod_python.publisher
-		PythonPath "sys.path+['$DIR/python']"
 	</Directory>
 	ErrorLog ${APACHE_LOG_DIR}/error.log
 	LogLevel warn
@@ -103,7 +103,6 @@ EOF
 # start local web server
 a2dissite -q 000-default.conf
 a2ensite -q potsbliz.conf
-a2enmod -q authn_dbd
 a2enmod -q dbd
 a2enconf -q dbd_mysql
 service apache2 reload
@@ -136,13 +135,6 @@ CREATE TABLE IF NOT EXISTS speeddial (
   comment VARCHAR(80)
 );
 INSERT IGNORE INTO speeddial VALUES ('1', '21', '123456789', 'MyFirstSpeedDialNumber');
-
-CREATE TABLE IF NOT EXISTS mysql_auth (
-  username CHAR(25) NOT NULL,
-  passwd CHAR(32),
-  PRIMARY KEY (username)
-);
-INSERT IGNORE INTO mysql_auth (username, passwd) VALUES ('admin', ENCRYPT('admin'));
 EOF
 
 # install required python packages
