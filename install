@@ -78,7 +78,9 @@ cat <<EOF > /etc/apache2/sites-available/potsbliz.conf
 		AllowOverride AuthConfig
 		AuthName "POTSBLIZ"
 		AuthType Basic
-		AuthBasicProvider external
+		AuthBasicProvider socache external
+		AuthExternalProvideCache On
+		AuthnCacheProvideFor external
 		AuthExternal pwauth
 		Require valid-user
 		AddHandler mod_python .py
@@ -104,6 +106,8 @@ EOF
 a2dissite -q 000-default.conf
 a2ensite -q potsbliz.conf
 a2enmod -q dbd
+a2enmod -q socache_shmcb
+a2enmod -q authn_socache
 a2enconf -q dbd_mysql
 service apache2 reload
 
