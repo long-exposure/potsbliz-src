@@ -2,8 +2,8 @@
 
 # ### BEGIN INIT INFO
 # Provides: potsbliz-userpart-asterisk
-# Required-Start: $remote_fs $syslog potsbliz
-# Required-Stop: $remote_fs $syslog potsbliz
+# Required-Start: $remote_fs $syslog potsbliz asterisk
+# Required-Stop: $remote_fs $syslog potsbliz asterisk
 # Should-Start:
 # Should-Stop:
 # Default-Start: 2 3 4 5

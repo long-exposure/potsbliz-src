@@ -2,8 +2,8 @@
 
 # ### BEGIN INIT INFO
 # Provides: potsbliz-userpart-bluetooth
-# Required-Start: $remote_fs $syslog potsbliz
-# Required-Stop: $remote_fs $syslog potsbliz
+# Required-Start: $remote_fs $syslog potsbliz ofono bluetooth
+# Required-Stop: $remote_fs $syslog potsbliz ofono bluetooth
 # Should-Start:
 # Should-Stop:
 # Default-Start: 2 3 4 5
