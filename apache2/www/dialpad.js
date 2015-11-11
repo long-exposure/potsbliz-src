@@ -21,49 +21,51 @@ $(function () {
             this._dialpad.append($("<div id='dp-call-button' class='dp-button dp-function-button'></div>").hide())
             this._dialpad.append($("<div id='dp-hangup-button' class='dp-button dp-function-button'></div>").hide())
             $(this.element).append(this._dialpad);
-            
-            // get current state
-			$.ajax({
-				url: "dialpad.py/get_state",
-				dataType: "json",
-				success: function(data) {
-			    	self._go_offhook((data.State != 'IDLE') && (data.State != 'RINGING'));
-				},
-			});
-            
-            // start polling for state changes
-            this._update_state(this);
-            
-            
-            // Event handlers:
-            
+
+			self._state = 'UNDEFINED';
+			
             $(".dp-number-button").click(function(){
             	// append number key in display
     			$("#dp-display").val($("#dp-display").val() + $(this).text());
-            	if (self._offhook){
-            		self._dialed_digits($(this).text());
+				if ((self._state == 'OFFHOOK') || (self._state == 'COLLECTING') || (self._state == 'TALK')) {
+					$.ajax({
+						type: "POST",
+						data: 'digits=' + $(this).text(),
+						dataType: "json",
+						url: "/dialpad.py/dialed_digits",
+					});
 				}
 			});
-            
-            $("#dp-backspace-button").click(function(){
+			
+			$("#dp-backspace-button").click(function(){
             	// remove last number from display
     			$("#dp-display").val($("#dp-display").val().slice(0, -1));
 			});
-            
+
             $("#dp-call-button").click(function(){
             	// go offhook
     			$.ajax({
 					url: "/dialpad.py/offhook",
-				});            		
+					async: false,
+				});
+				
+				if ($("#dp-display").val().length > 0) {
+					$.ajax({
+						type: "POST",
+						data: 'digits=' + $("#dp-display").val(),
+						dataType: "json",
+						url: "/dialpad.py/dialed_digits",
+					});
+				}       		
 			});
-            
+
             $("#dp-hangup-button").click(function(){
-    			$("#dp-display").val('');
+    			// go onhook
     			$.ajax({
 					url: "/dialpad.py/onhook",
 				});
 			});
-            
+
 			$("#dp-display").on('input', function(e) {
  				self._filter_display();
 			});
@@ -71,45 +73,36 @@ $(function () {
 			$("#dp-display").on('change', function() {
  				self._filter_display();
 			});
-        },
-
-        _dialed_digits: function (digits) {
-			$.ajax({
-				type: "POST",
-				data: 'digits=' + digits,
-				dataType: "json",
-				url: "/dialpad.py/dialed_digits",
-			});
+            
+			// read state periodically
+			setInterval(function() {
+				$.ajax({
+					url: "dialpad.py/get_state",
+					dataType: "json",
+					success: function(data) {
+						if (data.State != self._state) {
+							//alert('Old state: ' + self._state + ', New state: ' + data.State);
+							if ((data.State == 'IDLE') || (data.State == 'RINGING')) {
+								$("#dp-call-button").show();
+        						$("#dp-hangup-button").hide();
+								$("#dp-backspace-button").show();
+								$("#dp-display").val('');
+							}
+							else {
+								$("#dp-call-button").hide();
+        						$("#dp-hangup-button").show();        		
+								$("#dp-backspace-button").hide();
+							}
+							self._state = data.State;
+				    	}
+					},
+				});
+			}, 3000);
         },
 
         _filter_display: function () {
             digits = $("#dp-display").val();
             $("#dp-display").val(digits.replace(/[^0-9#*]/g, ""));
         },
-
-        _go_offhook: function (flag) {
-        	this._offhook = flag;
-        	if (flag == true) {
-        		$("#dp-call-button").hide();
-        		$("#dp-hangup-button").show();        		
-        	}
-        	else {
-        		$("#dp-call-button").show();
-        		$("#dp-hangup-button").hide();        		
-        	}
-        },
-        
-        _update_state: function (dialpad) {
-			$.ajax({
-				url: "dialpad.py/get_state",
-				dataType: "json",
-				success: function(data) {
-			    	setTimeout(function() {
-    			    	dialpad._go_offhook((data.State != 'IDLE') && (data.State != 'RINGING'));
-			    		dialpad._update_state(dialpad);
-			    	}, 1000);
-				},
-			});
-		},
     });
 });
