@@ -155,6 +155,9 @@ chmod +x $DIR/python/potsbliz/userpart/bluetooth/*install
 # integrate in pythonpath
 ln -s $DIR/python/potsbliz /usr/local/lib/python2.7/dist-packages/potsbliz
 
+# link console demo program into PATH
+ln -s $DIR/python/potsbliz/plugin/console/__main__.py /usr/local/sbin/potsbliz
+
 # create and start daemon
 cp -v $DIR/potsbliz /etc/init.d
 update-rc.d potsbliz defaults

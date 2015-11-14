@@ -28,6 +28,10 @@ update-rc.d potsbliz remove
 rm -v /etc/init.d/potsbliz
 
 
+# remove link to console demo program
+rm -v /usr/local/sbin/potsbliz
+
+
 # cleanup PYTHONPATH
 rm -v /usr/local/lib/python2.7/dist-packages/potsbliz
 
