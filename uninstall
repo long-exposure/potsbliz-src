@@ -53,6 +53,7 @@ a2dismod -q authn_socache
 a2dismod -q socache_shmcb
 a2dismod -q dbd
 a2disconf -q dbd_mysql
+a2disconf -q javascript-common
 service apache2 reload
 
 # remove config files

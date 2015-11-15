@@ -109,6 +109,7 @@ a2enmod -q dbd
 a2enmod -q socache_shmcb
 a2enmod -q authn_socache
 a2enconf -q dbd_mysql
+a2enconf -q javascript-common
 service apache2 reload
 
 
