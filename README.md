@@ -91,9 +91,7 @@ run the pairing procedure:
 * Wait until pairing has completed
 
 Once a pairing process has successfully finished, POTSBLIZ will connect to your
-smartphone automatically, whenever it comes within reach. As long as there is
-an active bluetooth connection established, POTSBLIZ will use it for outgoing
-calls, i.e. bluetooth has priority over SIP.
+smartphone automatically, whenever it comes within reach.
 
 ## SIP account
 
