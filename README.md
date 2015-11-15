@@ -144,7 +144,7 @@ you should be able to talk with the called party via the Raspberry Pi.
 
 # Call control via command line interface
 
-There is command line tool available, that allows call setup like this:
+There is a command line tool available, that allows call setup like this:
 
     $ sudo potsbliz -h
     $ sudo potsbliz offhook
