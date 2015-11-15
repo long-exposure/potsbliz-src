@@ -2,6 +2,8 @@
 
 (C)2015 - Norbert Huffschmid
 
+http://blog.long-exposure.net/
+
 POTSBLIZ is licensed under GPLv3.
 
 # Raspberry Pi basics
@@ -9,10 +11,13 @@ POTSBLIZ is licensed under GPLv3.
 Download the latest Raspian Jessie image and write it to your SD-card as
 described [here](http://www.raspbian.org/).
 
-Power-on your Raspberry Pi with keyboard and monitor connected. After the first
-boot raspi-config opens and offers some configuration menus. Select the correct
-keyboard layout, the timezone and the locale settings. Finally expand the
-filesystem on your SD-card and then reboot.
+Power-on your Raspberry with keyboard, mouse and monitor connected. First make
+sure that it boots to CLI and not to desktop:
+
+	Menu->Preferences->Raspberry Pi Configuration)
+	
+Configure the correct keyboard layout, timezone and locale settings. Finally
+expand the filesystem on your SD-card and reboot.
 
 Update your Raspberry Pi to the latest software and firmware:
 
@@ -41,7 +46,7 @@ so be patient and leave your Raspberry Pi alone until installation is
 complete.
 
 For testing purposes you need an USB sound card, e.g.
-[on of these](http://elinux.org/RPi_VerifiedPeripherals#USB_Sound_Cards)
+[one of these](http://elinux.org/RPi_VerifiedPeripherals#USB_Sound_Cards)
 (the Creative Sound Blaster Play worked fine) and a headset that gets connected
 to it. Reboot the Raspberry Pi and listen to the audio output. After a
 successful startup, a computer voice should tell you the URL of the
