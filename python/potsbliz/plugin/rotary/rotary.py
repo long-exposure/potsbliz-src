@@ -63,6 +63,7 @@ class Anip(object):
             GPIO.add_event_detect(GPIO_CHANNEL_HOOK, GPIO.BOTH, bouncetime=50)
             GPIO.add_event_detect(GPIO_CHANNEL_DIALER, GPIO.RISING, bouncetime=80)
             GPIO.add_event_detect(GPIO_CHANNEL_GROUND_KEY, GPIO.BOTH, bouncetime=20)
+            time.sleep(1) # inhibits sporadic immediate triggering of ground_key callback (no idea why)
             GPIO.add_event_callback(GPIO_CHANNEL_HOOK, self._hook)
             GPIO.add_event_callback(GPIO_CHANNEL_DIALER, self._dialpulse)
             GPIO.add_event_callback(GPIO_CHANNEL_GROUND_KEY, self._ground_key)
