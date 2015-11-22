@@ -34,7 +34,7 @@ cat package-list | xargs apt-get -y install
 
 
 # store version info
-git describe > /etc/potsbliz.version
+git describe --tags > /etc/potsbliz.version
 
 
 # set hostname (useful at least for bluetooth pairing and maybe other things)
